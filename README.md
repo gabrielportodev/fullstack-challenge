@@ -26,7 +26,7 @@ Você deve construir o **backend** (engine do jogo, carteira, comunicação em t
 
 - [Regras do Jogo](#regras-do-jogo)
 - [Arquitetura](#arquitetura)
-- [Tech Stack](#tech-stack)
+- [Tech Stack](#tech-stack-aceita)
 - [Infraestrutura e Setup](#infraestrutura-e-setup)
 - [Modelo de Domínio](#modelo-de-domínio)
 - [Algoritmo Provably Fair](#algoritmo-provably-fair)
@@ -436,8 +436,8 @@ cp services/wallets/.env.example services/wallets/.env
 | **README**           | Instruções de setup, decisões de arquitetura, trade-offs |
 | **Docker Compose**   | `bun run docker:up` sobe tudo                            |
 | **Usuário de teste** | Pré-configurado no Keycloak com saldo na carteira        |
-| **Prazo**            | **7 dias corridos** a partir do recebimento              |
-| **Apresentação**     | Call de 30 minutos para walkthrough do código e decisões |
+| **Prazo**            | **5 dias corridos** a partir do recebimento              |
+
 
 ---
 
