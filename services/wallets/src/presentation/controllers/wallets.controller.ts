@@ -1,5 +1,6 @@
 import { Controller, Get, Post, UseGuards, Request } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
+import type { ResponseType } from '@crash/types'
 import { HealthCheckResponseDto } from '@/presentation/dtos/health-check-response.dto'
 import { CreateWalletUseCase } from '@/application/create-wallet.usecase'
 import { GetWalletUseCase } from '@/application/get-wallet.usecase'
@@ -18,13 +19,15 @@ export class WalletsController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  async create(@Request() req: { user: { id: string } }) {
-    return this.createWallet.execute(req.user.id)
+  async create(@Request() req: { user: { id: string } }): Promise<ResponseType<unknown>> {
+    const data = await this.createWallet.execute(req.user.id)
+    return { success: true, message: 'Carteira criada', data }
   }
 
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
-  async getMe(@Request() req: { user: { id: string } }) {
-    return this.getWallet.execute(req.user.id)
+  async getMe(@Request() req: { user: { id: string } }): Promise<ResponseType<unknown>> {
+    const data = await this.getWallet.execute(req.user.id)
+    return { success: true, message: '', data }
   }
 }
