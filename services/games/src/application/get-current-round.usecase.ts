@@ -8,7 +8,24 @@ export class GetCurrentRoundUseCase {
   async execute() {
     const round = await this.prisma.round.findFirst({
       where: { status: { in: ['BETTING', 'ACTIVE'] } },
-      include: { bets: true }
+      select: {
+        id: true,
+        status: true,
+        seedHash: true,
+        startedAt: true,
+        createdAt: true,
+        bets: {
+          select: {
+            id: true,
+            playerId: true,
+            amountCents: true,
+            status: true,
+            cashoutMultiplier: true,
+            cashoutPayoutCents: true,
+            createdAt: true
+          }
+        }
+      }
     })
 
     if (!round) {
