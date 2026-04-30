@@ -16,13 +16,13 @@ export class WalletsController {
     return { status: 'ok', service: 'wallets' }
   }
 
-  @Post('wallets')
+  @Post()
   @UseGuards(AuthGuard('jwt'))
   async create(@Request() req: { user: { id: string } }) {
     return this.createWallet.execute(req.user.id)
   }
 
-  @Get('wallets/me')
+  @Get('me')
   @UseGuards(AuthGuard('jwt'))
   async getMe(@Request() req: { user: { id: string } }) {
     return this.getWallet.execute(req.user.id)
