@@ -21,13 +21,13 @@ export class WalletsController {
   @UseGuards(AuthGuard('jwt'))
   async create(@Request() req: { user: { id: string } }): Promise<ResponseType<unknown>> {
     const data = await this.createWallet.execute(req.user.id)
-    return { success: true, message: 'Carteira criada', data }
+    return { success: true, message: 'Carteira criada com sucesso!', data }
   }
 
   @Get('me')
   @UseGuards(AuthGuard('jwt'))
   async getMe(@Request() req: { user: { id: string } }): Promise<ResponseType<unknown>> {
     const data = await this.getWallet.execute(req.user.id)
-    return { success: true, message: '', data }
+    return { success: true, message: 'Carteira retornada com sucesso!', data }
   }
 }
