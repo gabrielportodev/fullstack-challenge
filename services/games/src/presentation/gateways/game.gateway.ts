@@ -19,6 +19,9 @@ export class GameGateway implements OnModuleInit, OnGatewayConnection, OnGateway
     this.gameLoop.on(GAME_EVENTS.ROUND_STARTED, data => this.server?.emit(GAME_EVENTS.ROUND_STARTED, data))
     this.gameLoop.on(GAME_EVENTS.MULTIPLIER_TICK, data => this.server?.emit(GAME_EVENTS.MULTIPLIER_TICK, data))
     this.gameLoop.on(GAME_EVENTS.ROUND_CRASHED, data => this.server?.emit(GAME_EVENTS.ROUND_CRASHED, data))
+    this.gameLoop.on(GAME_EVENTS.BET_PLACED, data => this.server?.emit(GAME_EVENTS.BET_PLACED, data))
+    this.gameLoop.on(GAME_EVENTS.BET_CASHOUT, data => this.server?.emit(GAME_EVENTS.BET_CASHOUT, data))
+    this.gameLoop.on(GAME_EVENTS.BET_CANCELLED, data => this.server?.emit(GAME_EVENTS.BET_CANCELLED, data))
   }
 
   // Envia estado atual para cliente recém-conectado

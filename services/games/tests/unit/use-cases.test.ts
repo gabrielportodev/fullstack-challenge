@@ -50,30 +50,33 @@ function makePrisma(overrides: Record<string, object> = {}) {
   } as any
 }
 
+const mockPublisher = { debitWallet: mock(() => {}), creditWallet: mock(() => {}) } as any
+const mockGameLoop = { emit: mock(() => {}) } as any
+
 describe('PlaceBetUseCase', () => {
   it('registra aposta na rodada em BETTING', async () => {
     const prisma = makePrisma({ round: { findFirst: mock(() => mockRoundRecord) } })
-    const useCase = new PlaceBetUseCase(prisma)
+    const useCase = new PlaceBetUseCase(prisma, mockPublisher, mockGameLoop)
     const result = await useCase.execute('p1', 1000n)
     expect(result).toEqual(mockBetRecord)
   })
 
   it('lança erro se não há rodada em BETTING', async () => {
     const prisma = makePrisma({ round: { findFirst: mock(() => null) } })
-    const useCase = new PlaceBetUseCase(prisma)
+    const useCase = new PlaceBetUseCase(prisma, mockPublisher, mockGameLoop)
     expect(useCase.execute('p1', 1000n)).rejects.toThrow(NotFoundException)
   })
 
   it('lança erro se jogador já apostou na rodada', async () => {
     const roundComAposta = { ...mockRoundRecord, bets: [{ ...mockBetRecord }] }
     const prisma = makePrisma({ round: { findFirst: mock(() => roundComAposta) } })
-    const useCase = new PlaceBetUseCase(prisma)
+    const useCase = new PlaceBetUseCase(prisma, mockPublisher, mockGameLoop)
     expect(useCase.execute('p1', 1000n)).rejects.toThrow(BadRequestException)
   })
 
   it('lança erro se valor da aposta for inválido', async () => {
     const prisma = makePrisma({ round: { findFirst: mock(() => mockRoundRecord) } })
-    const useCase = new PlaceBetUseCase(prisma)
+    const useCase = new PlaceBetUseCase(prisma, mockPublisher, mockGameLoop)
     expect(useCase.execute('p1', 50n)).rejects.toThrow(BadRequestException)
   })
 })
@@ -84,7 +87,7 @@ describe('CashoutBetUseCase', () => {
   it('processa cashout com sucesso', async () => {
     const roundAtivo = { ...mockRoundRecord, status: 'ACTIVE', bets: [{ ...mockBetRecord }] }
     const prisma = makePrisma({ round: { findFirst: mock(() => roundAtivo) } })
-    const useCase = new CashoutBetUseCase(prisma)
+    const useCase = new CashoutBetUseCase(prisma, mockPublisher, mockGameLoop)
     const result = await useCase.execute('p1', 2.0)
     expect(result.status).toBe('CASHED_OUT')
     expect(result.cashoutMultiplier).toBe(2.0)
@@ -92,14 +95,14 @@ describe('CashoutBetUseCase', () => {
 
   it('lança erro se não há rodada ACTIVE', async () => {
     const prisma = makePrisma({ round: { findFirst: mock(() => null) } })
-    const useCase = new CashoutBetUseCase(prisma)
+    const useCase = new CashoutBetUseCase(prisma, mockPublisher, mockGameLoop)
     expect(useCase.execute('p1', 2.0)).rejects.toThrow(NotFoundException)
   })
 
   it('lança erro se jogador não tem aposta na rodada', async () => {
     const roundAtivo = { ...mockRoundRecord, status: 'ACTIVE', bets: [] }
     const prisma = makePrisma({ round: { findFirst: mock(() => roundAtivo) } })
-    const useCase = new CashoutBetUseCase(prisma)
+    const useCase = new CashoutBetUseCase(prisma, mockPublisher, mockGameLoop)
     expect(useCase.execute('p1', 2.0)).rejects.toThrow(BadRequestException)
   })
 
@@ -107,7 +110,7 @@ describe('CashoutBetUseCase', () => {
     const betJaEncerrada = { ...mockBetRecord, status: 'CASHED_OUT' }
     const roundAtivo = { ...mockRoundRecord, status: 'ACTIVE', bets: [betJaEncerrada] }
     const prisma = makePrisma({ round: { findFirst: mock(() => roundAtivo) } })
-    const useCase = new CashoutBetUseCase(prisma)
+    const useCase = new CashoutBetUseCase(prisma, mockPublisher, mockGameLoop)
     expect(useCase.execute('p1', 2.0)).rejects.toThrow(BadRequestException)
   })
 })

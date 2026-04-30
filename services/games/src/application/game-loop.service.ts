@@ -8,7 +8,10 @@ export const GAME_EVENTS = {
   BETTING_START: 'round:betting_start',
   ROUND_STARTED: 'round:started',
   MULTIPLIER_TICK: 'multiplier:tick',
-  ROUND_CRASHED: 'round:crashed'
+  ROUND_CRASHED: 'round:crashed',
+  BET_PLACED: 'bet:placed',
+  BET_CASHOUT: 'bet:cashout',
+  BET_CANCELLED: 'bet:cancelled'
 } as const
 
 const BETTING_DURATION_MS = 10_000
