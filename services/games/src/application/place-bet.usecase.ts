@@ -14,7 +14,7 @@ export class PlaceBetUseCase {
     private readonly gameLoop: GameLoopService
   ) {}
 
-  async execute(playerId: string, username: string, amountCents: bigint) {
+  async execute(playerId: string, amountCents: bigint, username?: string) {
     const record = await this.prisma.round.findFirst({
       where: { status: 'BETTING' },
       include: { bets: true }

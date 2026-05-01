@@ -80,7 +80,7 @@ export class GamesController {
     @Request() req: { user: { id: string; username: string } },
     @Body() body: { amountCents: number }
   ): Promise<ResponseType<unknown>> {
-    const data = await this.placeBet.execute(req.user.id, req.user.username, BigInt(body.amountCents))
+    const data = await this.placeBet.execute(req.user.id, BigInt(body.amountCents), req.user.username)
     return { success: true, message: 'Aposta registrada', data }
   }
 
