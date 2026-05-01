@@ -22,6 +22,12 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+      - name: Prepare environment files
+        run: |
+          cp services/games/.env.example services/games/.env
+          cp services/wallets/.env.example services/wallets/.env
+          cp frontend/.env.example frontend/.env
+
       - name: Check format
         run: bun run format --check
 
@@ -29,7 +35,7 @@ jobs:
         run: bun run test:unit
 
       - name: Spin up infrastructure
-        run: docker compose up -d
+        run: bun run docker:up -- -d
 
       - name: Wait for services
         run: sleep 45
