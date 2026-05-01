@@ -16,3 +16,9 @@ services:
         paths:
           - /wallets
         strip_path: true
+
+plugins:
+  - name: rate-limiting
+    config:
+      minute: 100
+      policy: local
