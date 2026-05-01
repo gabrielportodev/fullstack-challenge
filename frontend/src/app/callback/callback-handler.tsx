@@ -30,7 +30,7 @@ export function CallbackHandler() {
     }
 
     handleCallback(code, state)
-      .then(() => router.replace('/'))
+      .then(() => router.replace('/game'))
       .catch(err => {
         console.error('Auth callback failed:', err)
         router.replace('/')
