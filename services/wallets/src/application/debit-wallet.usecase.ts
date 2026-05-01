@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common'
 import { PrismaService } from '@/infrastructure/prisma.service'
 import { Wallet } from '@/domain/wallet'
 
@@ -15,7 +15,11 @@ export class DebitWalletUseCase {
 
     const wallet = new Wallet(record.id, record.playerId, record.balanceCents)
 
-    wallet.debit(amountCents)
+    try {
+      wallet.debit(amountCents)
+    } catch (err) {
+      throw new BadRequestException(err.message)
+    }
 
     return this.prisma.wallet.update({
       where: { playerId },
