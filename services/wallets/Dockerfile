@@ -13,6 +13,8 @@ COPY services/wallets/ ./services/wallets/
 
 WORKDIR /app/services/wallets
 
+RUN bunx prisma generate
+
 EXPOSE 4002
 
-CMD ["bun", "run", "src/main.ts"]
+CMD ["sh", "-lc", "bunx prisma migrate deploy && bun run src/main.ts"]

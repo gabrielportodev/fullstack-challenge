@@ -13,6 +13,8 @@ COPY services/games/ ./services/games/
 
 WORKDIR /app/services/games
 
+RUN bunx prisma generate
+
 EXPOSE 4001
 
-CMD ["bun", "run", "src/main.ts"]
+CMD ["sh", "-lc", "bunx prisma migrate deploy && bun run src/main.ts"]
