@@ -1,4 +1,7 @@
 import 'reflect-metadata'
+;(BigInt.prototype as unknown as Record<string, unknown>).toJSON = function () {
+  return this.toString()
+}
 import { NestFactory } from '@nestjs/core'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import { AppModule } from './app.module'

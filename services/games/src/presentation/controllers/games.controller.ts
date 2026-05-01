@@ -77,10 +77,10 @@ export class GamesController {
   @Post('bet')
   @UseGuards(AuthGuard('jwt'))
   async bet(
-    @Request() req: { user: { id: string } },
+    @Request() req: { user: { id: string; username: string } },
     @Body() body: { amountCents: number }
   ): Promise<ResponseType<unknown>> {
-    const data = await this.placeBet.execute(req.user.id, BigInt(body.amountCents))
+    const data = await this.placeBet.execute(req.user.id, req.user.username, BigInt(body.amountCents))
     return { success: true, message: 'Aposta registrada', data }
   }
 

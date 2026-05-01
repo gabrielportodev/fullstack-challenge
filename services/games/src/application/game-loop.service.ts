@@ -25,6 +25,7 @@ export class GameLoopService extends EventEmitter implements OnApplicationBootst
   private currentRound: Round | null = null
   private currentMultiplier = 1.0
   private roundStartTime = 0
+  private bettingEndsAt = 0
   private tickTimer: ReturnType<typeof setInterval> | null = null
   private running = false
 
@@ -54,6 +55,10 @@ export class GameLoopService extends EventEmitter implements OnApplicationBootst
     return this.currentMultiplier
   }
 
+  getBettingEndsAt(): number {
+    return this.bettingEndsAt
+  }
+
   private async runLoop() {
     while (this.running) {
       await this.runBettingPhase()
@@ -79,12 +84,13 @@ export class GameLoopService extends EventEmitter implements OnApplicationBootst
       }
     })
 
+    this.bettingEndsAt = Date.now() + BETTING_DURATION_MS
     this.logger.log(`[BETTING] ${round.id.slice(0, 8)} | crash=${round.crashPoint.value}x`)
 
     this.emit(GAME_EVENTS.BETTING_START, {
       roundId: round.id,
       seedHash: round.crashPoint.seedHash,
-      duration: BETTING_DURATION_MS
+      bettingEndsAt: this.bettingEndsAt
     })
 
     await this.sleep(BETTING_DURATION_MS)

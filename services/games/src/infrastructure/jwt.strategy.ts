@@ -11,7 +11,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKeyProvider: passportJwtSecret({
         jwksUri: `${process.env.KEYCLOAK_URL}/realms/crash-game/protocol/openid-connect/certs`
       }),
-      issuer: `${process.env.KEYCLOAK_URL}/realms/crash-game`,
+      issuer: `${process.env.KEYCLOAK_ISSUER ?? process.env.KEYCLOAK_URL}/realms/crash-game`,
       algorithms: ['RS256']
     })
   }

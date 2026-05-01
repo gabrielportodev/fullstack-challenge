@@ -35,7 +35,7 @@ export class GameGateway implements OnModuleInit, OnGatewayConnection, OnGateway
       client.emit(GAME_EVENTS.BETTING_START, {
         roundId: round.id,
         seedHash: round.crashPoint.seedHash,
-        duration: 10_000
+        bettingEndsAt: this.gameLoop.getBettingEndsAt()
       })
     } else if (round.status === 'ACTIVE') {
       client.emit(GAME_EVENTS.ROUND_STARTED, { roundId: round.id })
