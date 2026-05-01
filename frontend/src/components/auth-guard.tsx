@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/auth.store'
 
 interface AuthGuardProps {
@@ -22,12 +23,12 @@ export function AuthGuard({ children, fallback }: AuthGuardProps) {
     return (
       fallback ?? (
         <div className='flex items-center justify-center'>
-          <button
+          <Button
             onClick={initiateLogin}
-            className='rounded-lg bg-emerald-500 px-6 py-2 text-sm font-semibold text-white transition hover:bg-emerald-400'
+            className='rounded-lg bg-emerald-500 px-6 py-2 text-sm font-semibold text-zinc-900 transition hover:bg-emerald-400'
           >
             Entrar para jogar
-          </button>
+          </Button>
         </div>
       )
     )

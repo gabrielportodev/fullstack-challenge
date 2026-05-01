@@ -62,7 +62,7 @@ export function CrashCanvas({ phase, multiplier, cashoutMarkers }: CrashCanvasPr
     }
 
     const pts = pointsRef.current
-    
+
     // Draw flash and return if no points
     if (pts.length < 2) {
       if (flashRef.current > 0) {
@@ -137,7 +137,7 @@ export function CrashCanvas({ phase, multiplier, cashoutMarkers }: CrashCanvasPr
 
     // Tip dot/marker
     const [ex, ey] = projected[projected.length - 1]
-    
+
     if (crashed) {
       // Crash marker
       ctx.strokeStyle = '#ef4444'
@@ -161,7 +161,7 @@ export function CrashCanvas({ phase, multiplier, cashoutMarkers }: CrashCanvasPr
       ctx.shadowBlur = 20
       ctx.fill()
       ctx.shadowBlur = 0
-      
+
       // Outer ring for tip
       ctx.beginPath()
       ctx.arc(ex, ey, 10, 0, Math.PI * 2)

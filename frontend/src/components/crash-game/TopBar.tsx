@@ -88,13 +88,15 @@ export function TopBar({
                     'Sem carteira'
                   )}
                 </span>
-                <span className='hidden desktop:inline font-medium text-zinc-400 truncate max-w-[100px]'>{username}</span>
+                <span className='hidden desktop:inline font-medium text-zinc-400 truncate max-w-[100px]'>
+                  {username}
+                </span>
               </div>
               <div className='w-6 h-6 desktop:w-8 desktop:h-8 rounded-full bg-linear-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-[10px] desktop:text-xs font-bold text-white shrink-0'>
                 {userInitial}
               </div>
             </Card>
-            
+
             <Button
               variant='outline'
               size='sm'

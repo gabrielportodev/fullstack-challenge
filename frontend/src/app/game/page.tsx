@@ -167,7 +167,6 @@ export default function CrashGamePage() {
         />
       </div>
 
-      {/* Mobile-only Bet Controls (Top) */}
       <div className='desktop:hidden bg-zinc-900 border-b border-zinc-800 p-2'>
         <BetControls
           phase={phase}

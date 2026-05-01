@@ -7,7 +7,7 @@ import type { WalletStatus } from '@/stores/game.store'
 import { fmtBRL } from '@/lib/crash-game'
 import type { GameBet, GamePhase } from '@/types/crash-game'
 import { cn } from '@/lib/utils'
-import { Minus, Plus, Zap } from 'lucide-react'
+import { Zap } from 'lucide-react'
 
 interface BetControlsProps {
   phase: GamePhase
@@ -94,20 +94,22 @@ export function BetControls({
             <div className='flex justify-between items-center px-1'>
               <Label className='text-[10px] font-black uppercase text-zinc-500 tracking-tighter'>Quantia</Label>
               <div className='flex gap-1'>
-                <button 
+                <Button
+                  variant='outline'
                   onClick={() => multiplyAmount(0.5)}
                   disabled={betDisabled}
-                  className='text-[9px] font-bold text-zinc-400 hover:text-zinc-100 bg-zinc-800 px-1.5 rounded border border-zinc-700 disabled:opacity-30'
+                  className='text-[9px] font-bold text-zinc-400 hover:text-zinc-100 bg-zinc-800 h-auto py-0.5 px-1.5 border-zinc-700 disabled:opacity-30'
                 >
                   ½
-                </button>
-                <button 
+                </Button>
+                <Button
+                  variant='outline'
                   onClick={() => multiplyAmount(2)}
                   disabled={betDisabled}
-                  className='text-[9px] font-bold text-zinc-400 hover:text-zinc-100 bg-zinc-800 px-1.5 rounded border border-zinc-700 disabled:opacity-30'
+                  className='text-[9px] font-bold text-zinc-400 hover:text-zinc-100 bg-zinc-800 h-auto py-0.5 px-1.5 border-zinc-700 disabled:opacity-30'
                 >
                   2×
-                </button>
+                </Button>
               </div>
             </div>
             <div className='flex items-center bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden h-11 focus-within:border-emerald-500/40 transition-all'>
@@ -132,10 +134,12 @@ export function BetControls({
                 className='scale-75 data-[state=checked]:bg-emerald-500'
               />
             </div>
-            <div className={cn(
-              'flex items-center bg-zinc-900 border rounded-xl overflow-hidden h-11 transition-all',
-              autoEnabled ? 'border-zinc-700' : 'border-zinc-800 opacity-50'
-            )}>
+            <div
+              className={cn(
+                'flex items-center bg-zinc-900 border rounded-xl overflow-hidden h-11 transition-all',
+                autoEnabled ? 'border-zinc-700' : 'border-zinc-800 opacity-50'
+              )}
+            >
               <div className='pl-3 pr-1 text-zinc-600 font-bold text-xs'>×</div>
               <Input
                 type='number'
@@ -247,10 +251,12 @@ export function BetControls({
       </div>
 
       {/* Auto cashout toggle */}
-      <div className={cn(
-        'flex items-center gap-3 px-4 py-3 rounded-xl border transition-all',
-        autoEnabled ? 'bg-zinc-900/50 border-emerald-500/20' : 'bg-zinc-900/30 border-zinc-800'
-      )}>
+      <div
+        className={cn(
+          'flex items-center gap-3 px-4 py-3 rounded-xl border transition-all',
+          autoEnabled ? 'bg-zinc-900/50 border-emerald-500/20' : 'bg-zinc-900/30 border-zinc-800'
+        )}
+      >
         <Switch
           checked={autoEnabled}
           onCheckedChange={onAutoEnabledChange}
@@ -288,9 +294,7 @@ export function BetControls({
           {potential && (
             <p className='text-center text-[10px] text-zinc-500 uppercase font-black tracking-widest'>
               Lucro Estimado:{' '}
-              <span className='text-emerald-400'>
-                {fmtBRL(potential - Math.round(parseFloat(betAmount) * 100))}
-              </span>
+              <span className='text-emerald-400'>{fmtBRL(potential - Math.round(parseFloat(betAmount) * 100))}</span>
             </p>
           )}
         </div>
