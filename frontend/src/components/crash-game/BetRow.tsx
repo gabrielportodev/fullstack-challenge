@@ -8,50 +8,59 @@ interface BetRowProps {
 }
 
 export function BetRow({ bet }: BetRowProps) {
+  const isCashedOut = bet.status === 'CASHED_OUT'
+  const isLost = bet.status === 'LOST'
+  const isPending = bet.status === 'PENDING'
+
   return (
     <div
       className={cn(
-        'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all',
-        bet.status === 'CASHED_OUT' && 'bg-emerald-950/30 border-emerald-500/20',
-        bet.status === 'LOST' && 'bg-zinc-900/30 border-zinc-800/50 opacity-45',
-        bet.status === 'PENDING' && 'bg-zinc-900 border-zinc-800',
+        'flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all duration-500',
+        isCashedOut && 'bg-emerald-500/10 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.05)]',
+        isLost && 'bg-zinc-900/30 border-zinc-800/50 opacity-40 grayscale-[0.5]',
+        isPending && 'bg-zinc-900/50 border-zinc-800',
         bet.isNew && 'animate-in slide-in-from-top-2 duration-300'
       )}
     >
       <div
-        className='w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0'
+        className='w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white shrink-0 shadow-sm'
         style={{ background: avatarColor(bet.username) }}
       >
         {bet.username[0].toUpperCase()}
       </div>
 
-      <span className='flex-1 text-zinc-200 font-medium truncate'>{bet.username}</span>
+      <div className='flex flex-col min-w-0 flex-1'>
+        <span className='text-zinc-100 font-bold truncate text-[12px]'>{bet.username}</span>
+        <span className='font-mono text-[10px] text-zinc-500 uppercase tracking-tighter'>
+          Aposta: {fmtBRL(bet.amountCents)}
+        </span>
+      </div>
 
-      <div className='flex flex-col items-end gap-0.5'>
-        <span className='font-mono text-[11px] text-zinc-400'>{fmtBRL(bet.amountCents)}</span>
-        {bet.status === 'CASHED_OUT' && (
+      <div className='flex flex-col items-end gap-1'>
+        {isCashedOut ? (
+          <>
+            <span className='font-black text-[12px] text-emerald-400 animate-in zoom-in-50 duration-300'>
+              +{fmtBRL(Math.round(bet.amountCents * (bet.cashoutMultiplier || 1)))}
+            </span>
+            <Badge
+              variant='outline'
+              className='text-[9px] h-4 px-1.5 font-black bg-emerald-500/20 text-emerald-400 border-emerald-500/40 uppercase tracking-widest'
+            >
+              {bet.cashoutMultiplier?.toFixed(2)}x
+            </Badge>
+          </>
+        ) : isLost ? (
           <Badge
             variant='outline'
-            className='text-[10px] h-4 px-1.5 font-mono bg-emerald-950/50 text-emerald-400 border-emerald-500/30'
+            className='text-[9px] h-4 px-1.5 font-black bg-zinc-800 text-zinc-500 border-zinc-700 uppercase tracking-widest'
           >
-            {bet.cashoutMultiplier?.toFixed(2)}x
+            PERDEU
           </Badge>
-        )}
-        {bet.status === 'LOST' && (
-          <Badge
-            variant='outline'
-            className='text-[10px] h-4 px-1.5 font-mono bg-red-950/50 text-red-400 border-red-500/30'
-          >
-            BUST
-          </Badge>
-        )}
-        {bet.status === 'PENDING' && (
-          <Badge
-            variant='outline'
-            className='text-[10px] h-4 px-1.5 font-mono bg-amber-950/30 text-amber-400 border-amber-500/20'
-          >
-            ...
-          </Badge>
+        ) : (
+          <div className='flex items-center gap-1.5'>
+            <div className='w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse' />
+            <span className='text-[10px] font-bold text-amber-500/80 uppercase tracking-widest'>Jogando</span>
+          </div>
         )}
       </div>
     </div>

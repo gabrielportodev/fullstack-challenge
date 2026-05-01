@@ -1,4 +1,5 @@
 import { Separator } from '@/components/ui/separator'
+import type { WalletStatus } from '@/stores/game.store'
 import { PhaseBadge } from './PhaseBadge'
 import { SeedHash } from './SeedHash'
 import { BetControls } from './BetControls'
@@ -11,6 +12,8 @@ interface ControlPanelProps {
   seedHash: string
   myBet: GameBet | null
   accessToken: string | null
+  balance: number
+  walletStatus: WalletStatus
   betAmount: string
   onBetAmountChange: (v: string) => void
   autoCashout: string
@@ -32,6 +35,8 @@ export function ControlPanel({
   seedHash,
   myBet,
   accessToken,
+  balance,
+  walletStatus,
   betAmount,
   onBetAmountChange,
   autoCashout,
@@ -60,6 +65,8 @@ export function ControlPanel({
         phase={phase}
         myBet={myBet}
         accessToken={accessToken}
+        balance={balance}
+        walletStatus={walletStatus}
         betAmount={betAmount}
         onBetAmountChange={onBetAmountChange}
         autoCashout={autoCashout}
