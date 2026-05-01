@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Lint & Test
+    name: Pipeline de Validação
     runs-on: ubuntu-latest
 
     steps:
@@ -22,8 +22,20 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Check formatting
+      - name: Check format
         run: bun run format --check
 
-      - name: Run unit tests
-        run: bun test
+      - name: Test unit
+        run: bun run test:unit
+
+      - name: Spin up infrastructure
+        run: docker compose up -d
+
+      - name: Wait for services
+        run: sleep 45
+
+      - name: Test e2e
+        run: bun run test:e2e
+        env:
+          TEST_KONG_URL: http://localhost:8000
+          TEST_KEYCLOAK_TOKEN_URL: http://localhost:8080/realms/crash-game/protocol/openid-connect/token
