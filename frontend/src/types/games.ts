@@ -2,6 +2,7 @@ export interface Round {
   id: string
   status: 'BETTING' | 'ACTIVE' | 'CRASHED'
   seedHash: string
+  crashPoint: number | null
   startedAt: string | null
   crashedAt: string | null
   createdAt: string

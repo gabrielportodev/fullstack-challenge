@@ -15,12 +15,14 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   res => res,
   async error => {
-    if (error.response?.status === 401) {
+    const config = error.config as typeof error.config & { _retried?: boolean }
+    if (error.response?.status === 401 && !config._retried) {
+      config._retried = true
       const refreshed = await useAuthStore.getState().refreshAccessToken()
       if (refreshed) {
         const token = useAuthStore.getState().accessToken
-        error.config.headers.Authorization = `Bearer ${token}`
-        return api.request(error.config)
+        config.headers.Authorization = `Bearer ${token}`
+        return api.request(config)
       }
       useAuthStore.getState().logout()
     }

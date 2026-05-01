@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { io } from 'socket.io-client'
 import { toast } from 'sonner'
 import { gamesApi } from '@/api/games.api'
-import type { GameBet, HistoryEntry, CashoutMarker, GamePhase } from '@/types/crash-game'
+import { useGameStore } from '@/stores/game.store'
+import type { GameBet } from '@/types/crash-game'
 import { fmtMult } from '@/lib/crash-game'
-import type { Round } from '@/types/games'
 
 interface UseGameSocketOptions {
   myBetRef: React.MutableRefObject<GameBet | null>
@@ -23,15 +23,24 @@ export function useGameSocket({
   onMyBetLost,
   onMyBetCancelled
 }: UseGameSocketOptions) {
-  const [phase, setPhase] = useState<GamePhase>('BETTING')
-  const [multiplier, setMultiplier] = useState(1.0)
-  const [countdown, setCountdown] = useState(10)
-  const [crashPoint, setCrashPoint] = useState<number | null>(null)
-  const [seedHash, setSeedHash] = useState('')
-  const [bets, setBets] = useState<GameBet[]>([])
-  const [history, setHistory] = useState<HistoryEntry[]>([])
-  const [isConnected, setIsConnected] = useState(false)
-  const [cashoutMarkers, setCashoutMarkers] = useState<CashoutMarker[]>([])
+  const phase = useGameStore(s => s.phase)
+  const multiplier = useGameStore(s => s.multiplier)
+  const countdown = useGameStore(s => s.countdown)
+  const crashPoint = useGameStore(s => s.crashPoint)
+  const seedHash = useGameStore(s => s.seedHash)
+  const bets = useGameStore(s => s.bets)
+  const history = useGameStore(s => s.history)
+  const isConnected = useGameStore(s => s.isConnected)
+  const cashoutMarkers = useGameStore(s => s.cashoutMarkers)
+  const setPhase = useGameStore(s => s.setPhase)
+  const setMultiplier = useGameStore(s => s.setMultiplier)
+  const setCountdown = useGameStore(s => s.setCountdown)
+  const setCrashPoint = useGameStore(s => s.setCrashPoint)
+  const setSeedHash = useGameStore(s => s.setSeedHash)
+  const setBets = useGameStore(s => s.setBets)
+  const setHistory = useGameStore(s => s.setHistory)
+  const setIsConnected = useGameStore(s => s.setIsConnected)
+  const setCashoutMarkers = useGameStore(s => s.setCashoutMarkers)
 
   const onNewRoundRef = useRef(onNewRound)
   const onMyBetLostRef = useRef(onMyBetLost)
@@ -52,19 +61,17 @@ export function useGameSocket({
       .then(r => {
         if (!r.data) return
         setHistory(
-          r.data
-            .filter(round => round.status === 'CRASHED')
-            .map(round => {
-              const d = new Date(round.crashedAt ?? round.createdAt)
-              return {
-                crashPoint: (round as Round & { crashPoint?: number }).crashPoint ?? 1,
-                time: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-              }
-            })
+          r.data.map(round => {
+            const d = new Date(round.crashedAt ?? round.createdAt)
+            return {
+              crashPoint: round.crashPoint ?? 1,
+              time: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+            }
+          })
         )
       })
       .catch(() => {})
-  }, [])
+  }, [setHistory])
 
   useEffect(() => {
     const socket = io('http://localhost:4001', {
@@ -78,7 +85,7 @@ export function useGameSocket({
     socket.on('connect', () => setIsConnected(true))
     socket.on('disconnect', () => setIsConnected(false))
 
-    socket.on('round:betting_start', (data: { roundId: string; seedHash: string; duration: number }) => {
+    socket.on('round:betting_start', (data: { roundId: string; seedHash: string; bettingEndsAt: number }) => {
       setPhase('BETTING')
       setMultiplier(1.0)
       setSeedHash(data.seedHash)
@@ -88,13 +95,16 @@ export function useGameSocket({
       onNewRoundRef.current()
 
       if (countdownTimer) clearInterval(countdownTimer)
-      let c = Math.ceil(data.duration / 1000)
-      setCountdown(c)
-      countdownTimer = setInterval(() => {
-        c--
-        setCountdown(Math.max(0, c))
-        if (c <= 0 && countdownTimer) clearInterval(countdownTimer)
-      }, 1000)
+      const tick = () => {
+        const remaining = Math.max(0, Math.ceil((data.bettingEndsAt - Date.now()) / 1000))
+        setCountdown(remaining)
+        if (remaining <= 0 && countdownTimer) {
+          clearInterval(countdownTimer)
+          countdownTimer = null
+        }
+      }
+      tick()
+      countdownTimer = setInterval(tick, 500)
     })
 
     socket.on('round:started', () => {
@@ -123,8 +133,8 @@ export function useGameSocket({
       setHistory(h => [{ crashPoint: data.crashPoint, time }, ...h].slice(0, 20))
     })
 
-    socket.on('bet:placed', (data: { playerId: string; username?: string; amountCents: number; betId: string }) => {
-      const username = data.username ?? `Player_${data.playerId.slice(0, 6)}`
+    socket.on('bet:placed', (data: { playerId: string; username: string; amountCents: number; betId: string }) => {
+      const username = data.username
       setBets(prev => {
         if (prev.some(b => b.id === data.betId)) return prev
         return [
@@ -174,7 +184,19 @@ export function useGameSocket({
       if (countdownTimer) clearInterval(countdownTimer)
       socket.disconnect()
     }
-  }, [myBetRef, onMultiplierTick])
+  }, [
+    myBetRef,
+    onMultiplierTick,
+    setBets,
+    setCashoutMarkers,
+    setCountdown,
+    setCrashPoint,
+    setHistory,
+    setIsConnected,
+    setMultiplier,
+    setPhase,
+    setSeedHash
+  ])
 
   return {
     phase,

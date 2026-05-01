@@ -3,6 +3,7 @@
 import { useCallback } from 'react'
 import { toast } from 'sonner'
 import { gamesApi } from '@/api/games.api'
+import type { WalletStatus } from '@/stores/game.store'
 import { fmtBRL, fmtMult } from '@/lib/crash-game'
 import type { GameBet, GamePhase, CashoutMarker } from '@/types/crash-game'
 
@@ -11,9 +12,13 @@ type SetState<T> = React.Dispatch<React.SetStateAction<T>>
 interface UseGameActionsParams {
   phaseRef: React.MutableRefObject<GamePhase>
   myBetRef: React.MutableRefObject<GameBet | null>
+  accessToken: string | null
+  walletStatus: WalletStatus
   betAmount: string
   balance: number
   username: string
+  initiateLogin: () => Promise<void>
+  goToWallet: () => void
   setMyBet: SetState<GameBet | null>
   setBalance: SetState<number>
   setBets: SetState<GameBet[]>
@@ -23,9 +28,13 @@ interface UseGameActionsParams {
 export function useGameActions({
   phaseRef,
   myBetRef,
+  accessToken,
+  walletStatus,
   betAmount,
   balance,
   username,
+  initiateLogin,
+  goToWallet,
   setMyBet,
   setBalance,
   setBets,
@@ -56,6 +65,23 @@ export function useGameActions({
   )
 
   const handlePlaceBet = useCallback(async () => {
+    if (!accessToken) {
+      toast.info('Faça login para apostar')
+      await initiateLogin()
+      return
+    }
+
+    if (walletStatus === 'loading') {
+      toast.info('Carregando carteira...')
+      return
+    }
+
+    if (walletStatus === 'missing') {
+      toast.error('Crie sua carteira antes de apostar')
+      goToWallet()
+      return
+    }
+
     const cents = Math.round(parseFloat(betAmount) * 100)
     if (isNaN(cents) || cents < 100) {
       toast.error('Aposta mínima: R$ 1,00')
@@ -66,7 +92,7 @@ export function useGameActions({
       return
     }
     if (cents > balance) {
-      toast.error('Saldo insuficiente!')
+      toast.error('Saldo insuficiente! Vá para a carteira para adicionar saldo.')
       return
     }
     if (phaseRef.current !== 'BETTING') {
@@ -97,7 +123,19 @@ export function useGameActions({
       const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       toast.error(msg ?? 'Erro ao apostar')
     }
-  }, [betAmount, balance, phaseRef, myBetRef, username, setMyBet, setBalance])
+  }, [
+    accessToken,
+    walletStatus,
+    betAmount,
+    balance,
+    phaseRef,
+    myBetRef,
+    username,
+    initiateLogin,
+    goToWallet,
+    setMyBet,
+    setBalance
+  ])
 
   return { triggerCashout, handlePlaceBet }
 }
