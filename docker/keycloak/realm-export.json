@@ -37,6 +37,51 @@
           "temporary": false
         }
       ]
+    },
+    {
+      "username": "gabriel",
+      "email": "gabriel@crash-game.dev",
+      "firstName": "Gabriel",
+      "lastName": "Santos",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "gabriel123",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "joao",
+      "email": "joao@crash-game.dev",
+      "firstName": "João",
+      "lastName": "Souza",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "joao123",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "pedro",
+      "email": "pedro@crash-game.dev",
+      "firstName": "Pedro",
+      "lastName": "Costa",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "pedro123",
+          "temporary": false
+        }
+      ]
     }
   ]
 }
