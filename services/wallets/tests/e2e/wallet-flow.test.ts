@@ -49,14 +49,13 @@ async function ensureWallet(token: string): Promise<void> {
   })
 }
 
-// Publica uma mensagem no formato NestJS microservices para a fila wallets_queue
 async function publishToWallets(channel: amqp.Channel, pattern: string, data: Record<string, unknown>): Promise<void> {
   const msg = JSON.stringify({ pattern, data })
   channel.sendToQueue('wallets_queue', Buffer.from(msg), { persistent: true })
 }
 
 describe('Wallet Service E2E Suite', () => {
-  let rmqConnection: amqp.Connection
+  let rmqConnection: amqp.ChannelModel
   let channel: amqp.Channel
 
   beforeAll(async () => {
@@ -70,8 +69,6 @@ describe('Wallet Service E2E Suite', () => {
     await rmqConnection.close()
   })
 
-  // ─── REST endpoints ───────────────────────────────────────────────────────
-
   test('Health Check: serviço wallets responde ok', async () => {
     const res = await fetch(`${WALLET_API_URL}/health`)
     expect(res.status).toBe(200)
@@ -82,12 +79,11 @@ describe('Wallet Service E2E Suite', () => {
 
   test('Criar carteira: deve criar com sucesso para usuário autenticado', async () => {
     const token = await getToken('joao')
-    await ensureWallet(token) // garante que existe para não conflitar
+    await ensureWallet(token)
     const res = await fetch(WALLET_API_URL, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` }
     })
-    // 201 = criada, 409 = já existe (seed já criou). Ambos são comportamentos corretos.
     expect([201, 409]).toContain(res.status)
   }, 15000)
 
@@ -128,12 +124,10 @@ describe('Wallet Service E2E Suite', () => {
     expect(res.status).toBe(401)
   }, 10000)
 
-  // ─── Crédito via RabbitMQ ─────────────────────────────────────────────────
-
   test('Crédito via RabbitMQ: saldo deve aumentar pelo valor creditado', async () => {
     const token = await getToken('gabriel')
     const playerId = getPlayerIdFromToken(token)
-    const creditAmount = 50000n // R$500,00
+    const creditAmount = 50000n
 
     const initialBalance = await getBalance(token)
 
@@ -151,7 +145,7 @@ describe('Wallet Service E2E Suite', () => {
   test('Crédito acumulado: múltiplos créditos somam corretamente', async () => {
     const token = await getToken('gabriel')
     const playerId = getPlayerIdFromToken(token)
-    const creditAmount = 10000n // R$100,00
+    const creditAmount = 10000n
 
     const initialBalance = await getBalance(token)
 
@@ -170,12 +164,10 @@ describe('Wallet Service E2E Suite', () => {
     expect(finalBalance).toBe(initialBalance + creditAmount * 2n)
   }, 20000)
 
-  // ─── Débito via RabbitMQ ──────────────────────────────────────────────────
-
   test('Débito via RabbitMQ: saldo deve diminuir pelo valor debitado', async () => {
     const token = await getToken('gabriel')
     const playerId = getPlayerIdFromToken(token)
-    const debitAmount = 10000n // R$100,00
+    const debitAmount = 10000n
 
     const initialBalance = await getBalance(token)
     expect(initialBalance).toBeGreaterThan(debitAmount)
@@ -192,8 +184,6 @@ describe('Wallet Service E2E Suite', () => {
     expect(finalBalance).toBe(initialBalance - debitAmount)
   }, 20000)
 
-  // ─── Débito com saldo insuficiente ────────────────────────────────────────
-
   test('Débito insuficiente: saldo não deve ser alterado', async () => {
     const token = await getToken('pedro')
     await ensureWallet(token)
@@ -201,7 +191,6 @@ describe('Wallet Service E2E Suite', () => {
     const initialBalance = await getBalance(token)
     const playerId = getPlayerIdFromToken(token)
 
-    // Pedro tem saldo 0 (seed) — qualquer débito deve falhar
     await publishToWallets(channel, 'wallet.debit', {
       betId: `test-insufficient-${Date.now()}`,
       playerId,
@@ -214,15 +203,13 @@ describe('Wallet Service E2E Suite', () => {
     expect(finalBalance).toBe(initialBalance)
   }, 20000)
 
-  // ─── Fluxo completo: crédito seguido de débito ────────────────────────────
-
   test('Fluxo completo: crédito seguido de débito resulta no saldo esperado', async () => {
     const token = await getToken('joao')
     const playerId = getPlayerIdFromToken(token)
 
     const initialBalance = await getBalance(token)
-    const creditAmount = 100000n // R$1.000,00
-    const debitAmount = 30000n // R$300,00
+    const creditAmount = 100000n
+    const debitAmount = 30000n
 
     await publishToWallets(channel, 'wallet.credit', {
       playerId,

@@ -1,25 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { PrismaService } from '@/infrastructure/prisma.service'
-import { Wallet } from '@/domain/wallet'
 
 @Injectable()
 export class CreditWalletUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(playerId: string, amountCents: bigint) {
-    const record = await this.prisma.wallet.findUnique({ where: { playerId } })
+    const exists = await this.prisma.wallet.findUnique({ where: { playerId }, select: { id: true } })
 
-    if (!record) {
+    if (!exists) {
       throw new NotFoundException('Carteira não encontrada!')
     }
 
-    const wallet = new Wallet(record.id, record.playerId, record.balanceCents)
-
-    wallet.credit(amountCents)
-
+    // Atomic increment — avoids lost-update race when concurrent credits arrive
     return this.prisma.wallet.update({
       where: { playerId },
-      data: { balanceCents: wallet.balanceCents }
+      data: { balanceCents: { increment: amountCents } }
     })
   }
 }
