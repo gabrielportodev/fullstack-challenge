@@ -8,6 +8,7 @@ import { useGameStore } from '@/stores/game.store'
 import { walletsApi } from '@/api/wallets.api'
 import { useGameSocket } from '@/hooks/useGameSocket'
 import { useGameActions } from '@/hooks/useGameActions'
+import { useSounds } from '@/hooks/useSounds'
 import { TopBar } from '@/components/crash-game/TopBar'
 import { ControlPanel } from '@/components/crash-game/ControlPanel'
 import { CrashCanvas } from '@/components/crash-game/CrashCanvas'
@@ -39,6 +40,7 @@ export default function CrashGamePage() {
   const resetForLoggedOutUser = useGameStore(s => s.resetForLoggedOutUser)
   const username = user?.preferred_username ?? 'Visitante'
 
+  const { play: playSound } = useSounds()
   const [betAmount, setBetAmount] = useState('10')
 
   const myBetRef = useRef<GameBet | null>(null)
@@ -95,7 +97,8 @@ export default function CrashGamePage() {
     onMyBetCancelled: () => {
       if (myBetRef.current) setBalance(b => b + myBetRef.current!.amountCents)
       setMyBet(null)
-    }
+    },
+    onSound: playSound
   })
 
   useEffect(() => {

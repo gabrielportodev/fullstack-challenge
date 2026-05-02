@@ -7,6 +7,7 @@ import { gamesApi } from '@/api/games.api'
 import { useGameStore } from '@/stores/game.store'
 import type { GameBet } from '@/types/crash-game'
 import { fmtMult } from '@/lib/crash-game'
+import type { SoundName } from '@/hooks/useSounds'
 
 interface UseGameSocketOptions {
   myBetRef: React.MutableRefObject<GameBet | null>
@@ -14,6 +15,7 @@ interface UseGameSocketOptions {
   onNewRound: () => void
   onMyBetLost: () => void
   onMyBetCancelled: () => void
+  onSound?: (sound: SoundName) => void
 }
 
 export function useGameSocket({
@@ -21,7 +23,8 @@ export function useGameSocket({
   onMultiplierTick,
   onNewRound,
   onMyBetLost,
-  onMyBetCancelled
+  onMyBetCancelled,
+  onSound
 }: UseGameSocketOptions) {
   const phase = useGameStore(s => s.phase)
   const multiplier = useGameStore(s => s.multiplier)
@@ -45,6 +48,8 @@ export function useGameSocket({
   const onNewRoundRef = useRef(onNewRound)
   const onMyBetLostRef = useRef(onMyBetLost)
   const onMyBetCancelledRef = useRef(onMyBetCancelled)
+  const onSoundRef = useRef(onSound)
+
   useEffect(() => {
     onNewRoundRef.current = onNewRound
   }, [onNewRound])
@@ -54,6 +59,9 @@ export function useGameSocket({
   useEffect(() => {
     onMyBetCancelledRef.current = onMyBetCancelled
   }, [onMyBetCancelled])
+  useEffect(() => {
+    onSoundRef.current = onSound
+  }, [onSound])
 
   useEffect(() => {
     gamesApi
@@ -93,6 +101,7 @@ export function useGameSocket({
       setCashoutMarkers([])
       setCrashPoint(null)
       onNewRoundRef.current()
+      onSoundRef.current?.('bettingStart')
 
       if (countdownTimer) clearInterval(countdownTimer)
       const tick = () => {
@@ -110,6 +119,7 @@ export function useGameSocket({
     socket.on('round:started', () => {
       setPhase('ACTIVE')
       setMultiplier(1.0)
+      onSoundRef.current?.('roundStart')
     })
 
     socket.on('multiplier:tick', (data: { multiplier: number; elapsed: number }) => {
@@ -122,6 +132,7 @@ export function useGameSocket({
       setCrashPoint(data.crashPoint)
       setMultiplier(data.crashPoint)
       setBets(prev => prev.map(b => (b.status === 'PENDING' ? { ...b, status: 'LOST' } : b)))
+      onSoundRef.current?.('crash')
 
       if (myBetRef.current?.status === 'PENDING') {
         onMyBetLostRef.current()
@@ -135,6 +146,7 @@ export function useGameSocket({
 
     socket.on('bet:placed', (data: { playerId: string; username: string; amountCents: number; betId: string }) => {
       const username = data.username
+      onSoundRef.current?.('bet')
       setBets(prev => {
         if (prev.some(b => b.id === data.betId)) return prev
         return [
@@ -152,6 +164,7 @@ export function useGameSocket({
     })
 
     socket.on('bet:cashout', (data: { betId: string; multiplier: number; payoutCents: number }) => {
+      onSoundRef.current?.('cashout')
       setBets(prev => {
         const updated = prev.map(b =>
           b.id === data.betId ? { ...b, status: 'CASHED_OUT' as const, cashoutMultiplier: data.multiplier } : b
