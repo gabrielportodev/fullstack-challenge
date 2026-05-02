@@ -212,6 +212,19 @@
   animation: pulse-dot 1.4s ease-in-out infinite;
 }
 
+@keyframes crash-flash {
+  0% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-crash-flash {
+  animation: crash-flash 0.7s ease-out forwards;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 5px;

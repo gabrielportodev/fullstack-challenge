@@ -1,261 +1,208 @@
 'use client'
 
-import { useRef, useEffect, useCallback } from 'react'
-import { avatarColor } from '@/lib/crash-game'
+import { useEffect, useRef, useState } from 'react'
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ReferenceLine,
+  ReferenceDot,
+  ResponsiveContainer
+} from 'recharts'
 import type { CashoutMarker } from '@/types/crash-game'
 
-interface CrashCanvasProps {
+interface CrashChartProps {
   phase: string
   multiplier: number
   cashoutMarkers: CashoutMarker[]
 }
 
-const PAD = { left: 40, right: 30, top: 40, bottom: 30 }
+type Point = { t: number; mult: number }
 
-export function CrashCanvas({ phase, multiplier, cashoutMarkers }: CrashCanvasProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const pointsRef = useRef<{ t: number; mult: number }[]>([])
-  const activeStartRef = useRef<number | null>(null)
-  const scaleRef = useRef({ maxT: 10, maxMult: 2.5 })
-  const markersRef = useRef<CashoutMarker[]>([])
-  const flashRef = useRef(0)
-  const lastPhaseRef = useRef(phase)
-  const drawRef = useRef<((crashed: boolean) => void) | null>(null)
+function lineColor(mult: number, crashed: boolean): string {
+  if (crashed) return '#ef4444'
+  if (mult >= 10) return '#ef4444'
+  if (mult >= 3) return '#f59e0b'
+  return '#10b981'
+}
+
+const GROWTH_RATE = 0.1
+
+function buildCurvePoints(elapsed: number): Point[] {
+  if (elapsed <= 0) {
+    return [{ t: 0, mult: 1.0 }]
+  }
+
+  const samples = Math.max(300, Math.ceil(elapsed * 120))
+  const points: Point[] = []
+
+  for (let i = 0; i <= samples; i += 1) {
+    const t = (elapsed * i) / samples
+    points.push({
+      t,
+      mult: Math.exp(GROWTH_RATE * t)
+    })
+  }
+
+  return points
+}
+
+export function CrashCanvas({ phase, multiplier, cashoutMarkers }: CrashChartProps) {
+  const [elapsed, setElapsed] = useState(0)
+  const [showFlash, setShowFlash] = useState(false)
+  const startRef = useRef<number | null>(null)
+  const prevPhaseRef = useRef(phase)
+  const rafRef = useRef<number | null>(null)
 
   useEffect(() => {
-    markersRef.current = cashoutMarkers
-  }, [cashoutMarkers])
+    const prev = prevPhaseRef.current
+    prevPhaseRef.current = phase
 
-  const draw = useCallback((crashed: boolean) => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')!
-    const W = canvas.width
-    const H = canvas.height
-    const iW = W - PAD.left - PAD.right
-    const iH = H - PAD.top - PAD.bottom
-    ctx.clearRect(0, 0, W, H)
-
-    // Background Gradient
-    const bgGrad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, W / 2)
-    bgGrad.addColorStop(0, '#09090b')
-    bgGrad.addColorStop(1, '#020202')
-    ctx.fillStyle = bgGrad
-    ctx.fillRect(0, 0, W, H)
-
-    // Grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.03)'
-    ctx.lineWidth = 1
-    for (let i = 1; i < 8; i++) {
-      const x = PAD.left + (iW * i) / 8
-      ctx.beginPath()
-      ctx.moveTo(x, PAD.top)
-      ctx.lineTo(x, PAD.top + iH)
-      ctx.stroke()
+    if (phase === 'ACTIVE' && prev !== 'ACTIVE') {
+      startRef.current = performance.now()
+      setElapsed(0)
     }
-    for (let i = 1; i < 5; i++) {
-      const y = PAD.top + (iH * i) / 5
-      ctx.beginPath()
-      ctx.moveTo(PAD.left, y)
-      ctx.lineTo(PAD.left + iW, y)
-      ctx.stroke()
+    if (phase === 'CRASHED' && prev === 'ACTIVE') {
+      if (startRef.current) {
+        setElapsed((performance.now() - startRef.current) / 1000)
+      }
+      setShowFlash(true)
     }
+    if (phase === 'BETTING') {
+      startRef.current = null
+      setElapsed(0)
+    }
+  }, [phase])
 
-    const pts = pointsRef.current
-
-    // Draw flash and return if no points
-    if (pts.length < 2) {
-      if (flashRef.current > 0) {
-        ctx.fillStyle = `rgba(255, 255, 255, ${flashRef.current})`
-        ctx.fillRect(0, 0, W, H)
-        flashRef.current *= 0.9
-        if (flashRef.current < 0.01) flashRef.current = 0
-        requestAnimationFrame(() => drawRef.current?.(crashed))
+  useEffect(() => {
+    if (phase !== 'ACTIVE' || !startRef.current) {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
       }
       return
     }
 
-    const { maxT, maxMult } = scaleRef.current
-    const proj = (p: { t: number; mult: number }): [number, number] => [
-      PAD.left + (p.t / maxT) * iW,
-      PAD.top + iH - ((p.mult - 1) / Math.max(maxMult - 1, 0.01)) * iH
-    ]
-
-    const projected = pts.map(proj)
-    const x0 = projected[0][0]
-    const xN = projected[projected.length - 1][0]
-    const tipMult = pts[pts.length - 1].mult
-
-    // Line gradient
-    const lineGrad = ctx.createLinearGradient(x0, 0, xN, 0)
-    if (crashed) {
-      lineGrad.addColorStop(0, '#3f3f46')
-      lineGrad.addColorStop(1, '#ef4444')
-    } else {
-      const s3 = Math.min((3 - 1) / Math.max(tipMult - 1, 0.01), 1)
-      const s10 = Math.min((10 - 1) / Math.max(tipMult - 1, 0.01), 1)
-      lineGrad.addColorStop(0, '#10b981')
-      if (s3 < 1) lineGrad.addColorStop(s3, '#10b981')
-      if (s10 < 1) lineGrad.addColorStop(Math.min(s10, 0.999), '#f59e0b')
-      lineGrad.addColorStop(1, tipMult > 10 ? '#ef4444' : tipMult > 3 ? '#f59e0b' : '#10b981')
+    const tick = () => {
+      if (!startRef.current) return
+      setElapsed((performance.now() - startRef.current) / 1000)
+      rafRef.current = requestAnimationFrame(tick)
     }
 
-    // Fill under curve
-    const fillGrad = ctx.createLinearGradient(0, PAD.top, 0, PAD.top + iH)
-    fillGrad.addColorStop(0, crashed ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.15)')
-    fillGrad.addColorStop(1, 'rgba(0,0,0,0)')
-    ctx.beginPath()
-    ctx.moveTo(x0, PAD.top + iH)
-    projected.forEach(([x, y]) => ctx.lineTo(x, y))
-    ctx.lineTo(xN, PAD.top + iH)
-    ctx.closePath()
-    ctx.fillStyle = fillGrad
-    ctx.fill()
+    tick()
 
-    // Glow pass
-    ctx.beginPath()
-    ctx.moveTo(projected[0][0], projected[0][1])
-    projected.slice(1).forEach(([x, y]) => ctx.lineTo(x, y))
-    ctx.strokeStyle = lineGrad
-    ctx.lineWidth = 8
-    ctx.globalAlpha = 0.2
-    ctx.stroke()
-    ctx.globalAlpha = 1
-
-    // Sharp line
-    ctx.beginPath()
-    ctx.moveTo(projected[0][0], projected[0][1])
-    projected.slice(1).forEach(([x, y]) => ctx.lineTo(x, y))
-    ctx.strokeStyle = lineGrad
-    ctx.lineWidth = 3.5
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-    ctx.shadowColor = crashed ? '#ef4444' : tipMult > 10 ? '#ef4444' : tipMult > 3 ? '#f59e0b' : '#10b981'
-    ctx.shadowBlur = 12
-    ctx.stroke()
-    ctx.shadowBlur = 0
-
-    // Tip dot/marker
-    const [ex, ey] = projected[projected.length - 1]
-
-    if (crashed) {
-      // Crash marker
-      ctx.strokeStyle = '#ef4444'
-      ctx.lineWidth = 4
-      ctx.shadowColor = '#ef4444'
-      ctx.shadowBlur = 20
-      const s = 14
-      ctx.beginPath()
-      ctx.moveTo(ex - s, ey - s)
-      ctx.lineTo(ex + s, ey + s)
-      ctx.moveTo(ex + s, ey - s)
-      ctx.lineTo(ex - s, ey + s)
-      ctx.stroke()
-      ctx.shadowBlur = 0
-    } else {
-      const tipC = tipMult > 10 ? '#ef4444' : tipMult > 3 ? '#f59e0b' : '#10b981'
-      ctx.beginPath()
-      ctx.arc(ex, ey, 6, 0, Math.PI * 2)
-      ctx.fillStyle = tipC
-      ctx.shadowColor = tipC
-      ctx.shadowBlur = 20
-      ctx.fill()
-      ctx.shadowBlur = 0
-
-      // Outer ring for tip
-      ctx.beginPath()
-      ctx.arc(ex, ey, 10, 0, Math.PI * 2)
-      ctx.strokeStyle = tipC
-      ctx.lineWidth = 1.5
-      ctx.globalAlpha = 0.3
-      ctx.stroke()
-      ctx.globalAlpha = 1
-    }
-
-    // Cashout avatar markers
-    markersRef.current.forEach(m => {
-      const [mx, my] = proj(m)
-      if (mx < PAD.left - 15 || mx > W + 15) return
-      const isHigh = m.mult >= 5
-      const borderC = m.isMe ? '#ffffff' : isHigh ? '#fbbf24' : '#10b981'
-      const r = 14
-      ctx.save()
-      ctx.beginPath()
-      ctx.arc(mx, my - r - 6, r, 0, Math.PI * 2)
-      ctx.fillStyle = avatarColor(m.username)
-      ctx.fill()
-      ctx.strokeStyle = borderC
-      ctx.lineWidth = m.isMe ? 3 : 2
-      if (isHigh || m.isMe) {
-        ctx.shadowColor = borderC
-        ctx.shadowBlur = 10
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current)
+        rafRef.current = null
       }
-      ctx.stroke()
-      ctx.shadowBlur = 0
-      ctx.font = 'bold 11px sans-serif'
-      ctx.fillStyle = '#ffffff'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText(m.username[0].toUpperCase(), mx, my - r - 6)
-      ctx.font = 'bold 10px sans-serif'
-      ctx.fillStyle = borderC
-      ctx.textBaseline = 'top'
-      ctx.fillText(`${m.mult.toFixed(2)}x`, mx, my + 6)
-      ctx.restore()
-    })
-
-    // Flash effect
-    if (flashRef.current > 0) {
-      ctx.fillStyle = `rgba(255, 255, 255, ${flashRef.current})`
-      ctx.fillRect(0, 0, W, H)
-      flashRef.current *= 0.85
-      if (flashRef.current < 0.01) flashRef.current = 0
-      requestAnimationFrame(() => drawRef.current?.(crashed))
     }
-  }, [])
+  }, [phase])
 
-  useEffect(() => {
-    drawRef.current = draw
-  }, [draw])
+  const crashed = phase === 'CRASHED'
+  const color = lineColor(multiplier, crashed)
+  const points = phase === 'BETTING' ? [] : buildCurvePoints(elapsed)
 
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const ro = new ResizeObserver(() => {
-      canvas.width = canvas.clientWidth * window.devicePixelRatio
-      canvas.height = canvas.clientHeight * window.devicePixelRatio
-      canvas.getContext('2d')?.scale(window.devicePixelRatio, window.devicePixelRatio)
-      draw(phase === 'CRASHED')
-    })
-    ro.observe(canvas)
-    return () => ro.disconnect()
-  }, [draw, phase])
+  const visiblePoints = phase === 'BETTING' ? [] : points
+  const lastPoint = visiblePoints.at(-1)
 
-  useEffect(() => {
-    if (phase === 'ACTIVE') {
-      activeStartRef.current = performance.now()
-      pointsRef.current = []
-      scaleRef.current = { maxT: 10, maxMult: 2.5 }
-    }
-    if (phase === 'CRASHED' && lastPhaseRef.current === 'ACTIVE') {
-      flashRef.current = 0.4
-    }
-    if (phase === 'BETTING') {
-      pointsRef.current = []
-      activeStartRef.current = null
-      draw(false)
-    }
-    lastPhaseRef.current = phase
-  }, [phase, draw])
+  const xMax = Math.max(20, elapsed * 1.05)
 
-  useEffect(() => {
-    if ((phase !== 'ACTIVE' && phase !== 'CRASHED') || !activeStartRef.current) return
-    const elapsed = (performance.now() - activeStartRef.current) / 1000
-    pointsRef.current.push({ t: elapsed, mult: multiplier })
-    if (elapsed > scaleRef.current.maxT * 0.8) scaleRef.current.maxT = elapsed * 1.25
-    if (multiplier > scaleRef.current.maxMult * 0.8) scaleRef.current.maxMult = multiplier * 1.25
-    draw(phase === 'CRASHED')
-  }, [multiplier, phase, draw, cashoutMarkers])
+  const yMax = Math.max(3.0, multiplier * 2.0)
 
-  return <canvas ref={canvasRef} className='w-full h-full block' />
+  return (
+    <div className='relative w-full h-full'>
+      {showFlash && (
+        <div
+          className='absolute inset-0 z-10 pointer-events-none bg-red-500 animate-crash-flash'
+          onAnimationEnd={() => setShowFlash(false)}
+        />
+      )}
+
+      {visiblePoints.length >= 2 ? (
+        <ResponsiveContainer width='100%' height='100%'>
+          <AreaChart data={visiblePoints} margin={{ top: 40, right: 30, left: 10, bottom: 30 }}>
+            <defs>
+              <linearGradient id='areaFill' x1='0' y1='0' x2='0' y2='1'>
+                <stop offset='0%' stopColor={color} stopOpacity={0.18} />
+                <stop offset='100%' stopColor={color} stopOpacity={0} />
+              </linearGradient>
+
+              <filter id='tipGlow' x='-80%' y='-80%' width='260%' height='260%'>
+                <feGaussianBlur in='SourceGraphic' stdDeviation='4' result='blur' />
+                <feMerge>
+                  <feMergeNode in='blur' />
+                  <feMergeNode in='SourceGraphic' />
+                </feMerge>
+              </filter>
+            </defs>
+
+            <CartesianGrid stroke='rgba(255,255,255,0.03)' strokeDasharray='' />
+            <XAxis dataKey='t' hide type='number' domain={[0, xMax]} />
+            <YAxis hide domain={[0.9, yMax]} />
+
+            {cashoutMarkers.map((m, i) => (
+              <ReferenceLine
+                key={i}
+                y={m.mult}
+                stroke={m.isMe ? '#10b981' : '#6b7280'}
+                strokeDasharray='4 3'
+                strokeOpacity={0.45}
+                label={{
+                  value: `${m.username} ${m.mult.toFixed(2)}x`,
+                  fill: m.isMe ? '#10b981' : '#9ca3af',
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  position: 'insideTopRight'
+                }}
+              />
+            ))}
+
+            <Area
+              type='basis'
+              dataKey='mult'
+              stroke={color}
+              strokeWidth={3}
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              fill='url(#areaFill)'
+              dot={false}
+              activeDot={false}
+              isAnimationActive={false}
+            />
+
+            {lastPoint && (
+              <ReferenceDot
+                x={lastPoint.t}
+                y={lastPoint.mult}
+                r={0}
+                shape={(props: { cx?: number; cy?: number }) => (
+                  <g filter='url(#tipGlow)'>
+                    <circle cx={props.cx} cy={props.cy} r={6} fill={color} />
+                    <circle
+                      cx={props.cx}
+                      cy={props.cy}
+                      r={11}
+                      fill='none'
+                      stroke={color}
+                      strokeWidth={1.5}
+                      opacity={0.35}
+                    />
+                  </g>
+                )}
+              />
+            )}
+          </AreaChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className='w-full h-full' />
+      )}
+
+      <p className='absolute bottom-8 left-14 text-[11px] text-white/20 font-mono pointer-events-none select-none'>
+        m(t) = e^(0.1·t)
+      </p>
+    </div>
+  )
 }
