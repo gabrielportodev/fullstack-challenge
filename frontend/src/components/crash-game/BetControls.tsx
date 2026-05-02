@@ -108,7 +108,7 @@ export function BetControls({
               value={betAmount}
               onChange={e => onBetAmountChange(e.target.value)}
               disabled={!walletReady || !canBet}
-              className='border-0 bg-transparent text-sm font-black focus-visible:ring-0 h-full p-0'
+              className='border-0 bg-transparent text-sm font-black focus-visible:ring-0 h-full p-0 pl-4'
             />
           </div>
         </div>
@@ -167,7 +167,7 @@ export function BetControls({
             value={betAmount}
             onChange={e => onBetAmountChange(e.target.value)}
             disabled={!walletReady || !canBet}
-            className='border-0 bg-transparent text-lg font-black focus-visible:ring-0 focus-visible:ring-offset-0 h-12 p-0'
+            className='border-0 bg-transparent text-lg font-black focus-visible:ring-0 focus-visible:ring-offset-0 h-12 p-0 pl-2'
           />
           <div className='flex items-center gap-1 pr-2'>
             <Button

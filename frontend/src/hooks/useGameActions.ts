@@ -40,30 +40,25 @@ export function useGameActions({
   setBets,
   setCashoutMarkers
 }: UseGameActionsParams) {
-  const triggerCashout = useCallback(
-    async () => {
-      const cur = myBetRef.current
-      if (!cur || cur.status !== 'PENDING' || phaseRef.current !== 'ACTIVE') return
-      try {
-        const res = await gamesApi.cashout()
-        if (res.data) {
-          const mult = res.data.cashoutMultiplier!
-          const payout = Number(res.data.cashoutPayoutCents!)
-          setBalance(b => b + payout)
-          setMyBet(prev => (prev ? { ...prev, status: 'CASHED_OUT', cashoutMultiplier: mult } : null))
-          setBets(prev =>
-            prev.map(b => (b.id === cur.id ? { ...b, status: 'CASHED_OUT', cashoutMultiplier: mult } : b))
-          )
-          setCashoutMarkers(prev => [...prev, { username, mult, t: performance.now() / 1000, isMe: true }])
-          toast.success(`Cash Out: ${fmtBRL(payout)} @ ${fmtMult(mult)}`)
-        }
-      } catch (err: unknown) {
-        const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-        toast.error(msg ?? 'Erro ao fazer cashout')
+  const triggerCashout = useCallback(async () => {
+    const cur = myBetRef.current
+    if (!cur || cur.status !== 'PENDING' || phaseRef.current !== 'ACTIVE') return
+    try {
+      const res = await gamesApi.cashout()
+      if (res.data) {
+        const mult = res.data.cashoutMultiplier!
+        const payout = Number(res.data.cashoutPayoutCents!)
+        setBalance(b => b + payout)
+        setMyBet(prev => (prev ? { ...prev, status: 'CASHED_OUT', cashoutMultiplier: mult } : null))
+        setBets(prev => prev.map(b => (b.id === cur.id ? { ...b, status: 'CASHED_OUT', cashoutMultiplier: mult } : b)))
+        setCashoutMarkers(prev => [...prev, { username, mult, t: performance.now() / 1000, isMe: true }])
+        toast.success(`Cash Out: ${fmtBRL(payout)} @ ${fmtMult(mult)}`)
       }
-    },
-    [myBetRef, phaseRef, username, setMyBet, setBalance, setBets, setCashoutMarkers]
-  )
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+      toast.error(msg ?? 'Erro ao fazer cashout')
+    }
+  }, [myBetRef, phaseRef, username, setMyBet, setBalance, setBets, setCashoutMarkers])
 
   const handlePlaceBet = useCallback(async () => {
     if (!accessToken) {
