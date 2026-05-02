@@ -130,7 +130,7 @@ export default function CrashGamePage() {
   const canBet = phase === 'BETTING' && !myBet
   const canCashout = phase === 'ACTIVE' && myBet?.status === 'PENDING'
   const potential = canCashout ? Math.round(myBet!.amountCents * multiplier) : null
-  const handleCashout = useCallback(() => triggerCashout(multRef.current), [triggerCashout])
+  const handleCashout = useCallback(() => triggerCashout(), [triggerCashout])
   const handleWalletClick = useCallback(() => router.push('/wallet'), [router])
   const handleLoginClick = useCallback(() => {
     void initiateLogin()

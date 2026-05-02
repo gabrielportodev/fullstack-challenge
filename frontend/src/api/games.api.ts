@@ -16,7 +16,7 @@ export const gamesApi = {
 
   placeBet: (amountCents: number) => api.post<ResponseType<Bet>>('/games/bet', { amountCents }).then(r => r.data),
 
-  cashout: (multiplier: number) => api.post<ResponseType<Bet>>('/games/bet/cashout', { multiplier }).then(r => r.data)
+  cashout: () => api.post<ResponseType<Bet>>('/games/bet/cashout').then(r => r.data)
 }
 
 export type { Round, Bet, RoundHistoryResponse, BetsResponse, VerifyRoundResponse }
