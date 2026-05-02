@@ -6,22 +6,19 @@ export class DebitWalletUseCase {
   constructor(private readonly prisma: PrismaService) {}
 
   async execute(playerId: string, amountCents: bigint) {
-    const exists = await this.prisma.wallet.findUnique({ where: { playerId }, select: { id: true } })
+    const wallet = await this.prisma.wallet.findUnique({ where: { playerId } })
 
-    if (!exists) {
+    if (!wallet) {
       throw new NotFoundException('Carteira não encontrada!')
     }
 
-    // updateMany com where no balance gera UPDATE atômico: SET balance = balance - X WHERE balance >= X
-    const result = await this.prisma.wallet.updateMany({
-      where: { playerId, balanceCents: { gte: amountCents } },
-      data: { balanceCents: { decrement: amountCents } }
-    })
-
-    if (result.count === 0) {
+    if (wallet.balanceCents < amountCents) {
       throw new BadRequestException('Saldo insuficiente')
     }
 
-    return this.prisma.wallet.findUnique({ where: { playerId } })
+    return this.prisma.wallet.update({
+      where: { playerId },
+      data: { balanceCents: { decrement: amountCents } }
+    })
   }
 }
