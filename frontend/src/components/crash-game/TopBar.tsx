@@ -39,11 +39,8 @@ export function TopBar({
       className='flex items-center gap-3 px-3 desktop:px-4 bg-zinc-900/95 border-b border-zinc-800 z-10 backdrop-blur-sm h-[52px]'
       style={{ gridArea: 'topbar' }}
     >
-      <div className='flex items-center gap-2 font-bold text-sm desktop:text-base shrink-0'>
-        <div className='w-7 h-7 desktop:w-8 desktop:h-8 rounded-lg bg-linear-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-sm desktop:text-base'>
-          🎰
-        </div>
-        <span className='hidden sm:inline'>
+      <div className='flex items-center font-bold text-sm desktop:text-base shrink-0'>
+        <span>
           Crash<span className='text-emerald-400'>Game</span>
         </span>
       </div>
@@ -100,11 +97,11 @@ export function TopBar({
             <Button
               variant='outline'
               size='sm'
-              className='hidden desktop:flex h-9 border-zinc-800 bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-emerald-400 transition-all'
+              className='flex h-8 desktop:h-9 border-zinc-800 bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-emerald-400 transition-all px-2 desktop:px-3'
               onClick={onLogoutClick}
             >
-              <LogOut className='w-4 h-4 mr-2' />
-              Sair
+              <LogOut className='w-4 h-4 desktop:mr-2' />
+              <span className='hidden desktop:inline'>Sair</span>
             </Button>
           </div>
         ) : (
