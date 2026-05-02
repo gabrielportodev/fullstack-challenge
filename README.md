@@ -123,13 +123,16 @@ O endpoint `POST /games/bet/cashout` usa o multiplicador atual calculado pelo `G
 ## Testes
 
 ```bash
-# Unitários
+# Unitários — backend
 cd services/games && bun test tests/unit
 cd services/wallets && bun test tests/unit
 
 # E2E (requer infra rodando)
 cd services/games && bun test tests/e2e
 cd services/wallets && bun test tests/e2e
+
+# Unitários — frontend
+cd frontend && bun test
 
 # Todos os testes
 bun test
