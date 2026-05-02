@@ -3,8 +3,7 @@ import amqp from 'amqplib'
 
 const KONG_URL = process.env.TEST_KONG_URL ?? 'http://localhost:8000'
 const KEYCLOAK_TOKEN_URL =
-  process.env.TEST_KEYCLOAK_TOKEN_URL ??
-  'http://localhost:8080/realms/crash-game/protocol/openid-connect/token'
+  process.env.TEST_KEYCLOAK_TOKEN_URL ?? 'http://localhost:8080/realms/crash-game/protocol/openid-connect/token'
 const RABBITMQ_URL = process.env.TEST_RABBITMQ_URL ?? 'amqp://admin:admin@localhost:5672'
 
 const WALLET_API_URL = `${KONG_URL}/wallets`
@@ -51,11 +50,7 @@ async function ensureWallet(token: string): Promise<void> {
 }
 
 // Publica uma mensagem no formato NestJS microservices para a fila wallets_queue
-async function publishToWallets(
-  channel: amqp.Channel,
-  pattern: string,
-  data: Record<string, unknown>
-): Promise<void> {
+async function publishToWallets(channel: amqp.Channel, pattern: string, data: Record<string, unknown>): Promise<void> {
   const msg = JSON.stringify({ pattern, data })
   channel.sendToQueue('wallets_queue', Buffer.from(msg), { persistent: true })
 }

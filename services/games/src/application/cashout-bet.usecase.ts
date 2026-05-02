@@ -13,7 +13,8 @@ export class CashoutBetUseCase {
     private readonly gameLoop: GameLoopService
   ) {}
 
-  async execute(playerId: string, multiplier: number) {
+  async execute(playerId: string) {
+    const multiplier = this.gameLoop.getCurrentMultiplier()
     const record = await this.prisma.round.findFirst({
       where: { status: 'ACTIVE' },
       include: { bets: true }

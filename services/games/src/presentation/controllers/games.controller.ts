@@ -1,10 +1,19 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery, ApiParam, ApiOkResponse, ApiCreatedResponse, ApiBody } from '@nestjs/swagger'
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiParam,
+  ApiOkResponse,
+  ApiCreatedResponse,
+  ApiBody
+} from '@nestjs/swagger'
 import type { ArrayResponseType, ResponseType } from '@crash/types'
 import { HealthCheckResponseDto } from '@/presentation/dtos/health-check-response.dto'
 import { PlaceBetDto } from '@/presentation/dtos/place-bet.dto'
-import { CashoutBetDto } from '@/presentation/dtos/cashout-bet.dto'
 import { PlaceBetUseCase } from '@/application/place-bet.usecase'
 import { CashoutBetUseCase } from '@/application/cashout-bet.usecase'
 import { GetCurrentRoundUseCase } from '@/application/get-current-round.usecase'
@@ -238,7 +247,6 @@ export class GamesController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Realizar cashout no multiplicador atual (fase ACTIVE)' })
-  @ApiBody({ type: CashoutBetDto })
   @ApiCreatedResponse({
     description: 'Cashout realizado; crédito processado assincronamente via RabbitMQ',
     schema: {
@@ -261,11 +269,8 @@ export class GamesController {
   @ApiResponse({ status: 400, description: 'Sem aposta na rodada ou aposta já encerrada' })
   @ApiResponse({ status: 401, description: 'Não autenticado' })
   @ApiResponse({ status: 404, description: 'Nenhuma rodada ativa' })
-  async cashout(
-    @Request() req: { user: { id: string } },
-    @Body() body: CashoutBetDto
-  ): Promise<ResponseType<unknown>> {
-    const data = await this.cashoutBet.execute(req.user.id, body.multiplier)
+  async cashout(@Request() req: { user: { id: string } }): Promise<ResponseType<unknown>> {
+    const data = await this.cashoutBet.execute(req.user.id)
     return { success: true, message: 'Cashout realizado', data }
   }
 }
