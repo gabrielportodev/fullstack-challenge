@@ -24,6 +24,7 @@
   ],
   "users": [
     {
+      "id": "e0a7f1a0-1a1a-1a1a-1a1a-1a1a1a1a1a1a",
       "username": "player",
       "email": "player@crash-game.dev",
       "firstName": "Test",
@@ -39,6 +40,7 @@
       ]
     },
     {
+      "id": "e0a7f1a0-2b2b-2b2b-2b2b-2b2b2b2b2b2b",
       "username": "gabriel",
       "email": "gabriel@crash-game.dev",
       "firstName": "Gabriel",
@@ -54,6 +56,7 @@
       ]
     },
     {
+      "id": "e0a7f1a0-3c3c-3c3c-3c3c-3c3c3c3c3c3c",
       "username": "joao",
       "email": "joao@crash-game.dev",
       "firstName": "João",
@@ -69,6 +72,7 @@
       ]
     },
     {
+      "id": "e0a7f1a0-4d4d-4d4d-4d4d-4d4d4d4d4d4d",
       "username": "pedro",
       "email": "pedro@crash-game.dev",
       "firstName": "Pedro",

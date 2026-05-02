@@ -17,4 +17,4 @@ RUN bunx prisma generate
 
 EXPOSE 4002
 
-CMD ["sh", "-lc", "bunx prisma migrate deploy && bun run src/main.ts"]
+CMD ["sh", "-lc", "bunx prisma migrate deploy && bunx prisma db seed && bun run src/main.ts"]
