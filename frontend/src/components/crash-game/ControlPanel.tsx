@@ -16,10 +16,6 @@ interface ControlPanelProps {
   walletStatus: WalletStatus
   betAmount: string
   onBetAmountChange: (v: string) => void
-  autoCashout: string
-  onAutoCashoutChange: (v: string) => void
-  autoEnabled: boolean
-  onAutoEnabledChange: (v: boolean) => void
   multiplier: number
   potential: number | null
   canBet: boolean
@@ -39,10 +35,6 @@ export function ControlPanel({
   walletStatus,
   betAmount,
   onBetAmountChange,
-  autoCashout,
-  onAutoCashoutChange,
-  autoEnabled,
-  onAutoEnabledChange,
   multiplier,
   potential,
   canBet,
@@ -69,10 +61,6 @@ export function ControlPanel({
         walletStatus={walletStatus}
         betAmount={betAmount}
         onBetAmountChange={onBetAmountChange}
-        autoCashout={autoCashout}
-        onAutoCashoutChange={onAutoCashoutChange}
-        autoEnabled={autoEnabled}
-        onAutoEnabledChange={onAutoEnabledChange}
         multiplier={multiplier}
         potential={potential}
         canBet={canBet}

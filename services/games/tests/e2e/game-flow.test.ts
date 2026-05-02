@@ -52,22 +52,6 @@ async function getBalance(token: string) {
   return Number(json.data.balanceCents)
 }
 
-async function addBalance(token: string, amountCents: number) {
-  await fetch(`${WALLET_API_URL}/credit`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ amountCents })
-  })
-}
-
-async function drainBalance(token: string, amountCents: number) {
-  await fetch(`${WALLET_API_URL}/debit`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-    body: JSON.stringify({ amountCents })
-  })
-}
-
 describe('Crash Game End-to-End Suite', () => {
   let socket: Socket
 
@@ -77,8 +61,6 @@ describe('Crash Game End-to-End Suite', () => {
 
   test('Cenário de Vitória: Deve apostar e realizar cashout com lucro', async () => {
     const token = await getToken('player')
-    await getBalance(token)
-    await addBalance(token, 100000)
 
     const initialBalance = await getBalance(token)
     const betAmount = 1000
@@ -139,8 +121,6 @@ describe('Crash Game End-to-End Suite', () => {
 
   test('Cenário de Perda: Saldo deve ser reduzido após o crash', async () => {
     const token = await getToken('gabriel')
-    await getBalance(token)
-    await addBalance(token, 100000)
 
     const initialBalance = await getBalance(token)
     const betAmount = 500
@@ -190,11 +170,7 @@ describe('Crash Game End-to-End Suite', () => {
     const token = await getToken('pedro')
     await ensureWallet(token)
 
-    const currentBalance = await getBalance(token)
-    if (currentBalance > 0) {
-      await drainBalance(token, currentBalance)
-    }
-
+    // Pedro é seedado com saldo zero — débito falhará e acionará a compensação
     socket = io('http://localhost:4001', { transports: ['websocket'] })
     await new Promise<void>(r => socket.once('round:betting_start', () => r()))
 
@@ -222,8 +198,6 @@ describe('Crash Game End-to-End Suite', () => {
 
   test('Erro: Aposta dupla na mesma rodada → segunda aposta rejeitada', async () => {
     const token = await getToken('joao')
-    await getBalance(token)
-    await addBalance(token, 50000)
 
     socket = io('http://localhost:4001', { transports: ['websocket'] })
     await new Promise<void>(r => socket.once('round:betting_start', () => r()))
@@ -364,8 +338,6 @@ describe('Crash Game End-to-End Suite', () => {
 
   test('Cashout: Sacar duas vezes na mesma rodada → segundo cashout rejeitado', async () => {
     const token = await getToken('gabriel')
-    await getBalance(token)
-    await addBalance(token, 50000)
 
     socket = io('http://localhost:4001', { transports: ['websocket'] })
     await new Promise<void>(r => socket.once('round:betting_start', () => r()))

@@ -9,21 +9,12 @@ import { useAuthStore } from '@/stores/auth.store'
 import { walletsApi, type Wallet } from '@/api/wallets.api'
 import { WalletTopBar } from '@/components/wallet/WalletTopBar'
 import { WalletBalanceCard } from '@/components/wallet/WalletBalanceCard'
-import { WalletStatsGrid } from '@/components/wallet/WalletStatsGrid'
-import { OperationCard } from '@/components/wallet/OperationCard'
-import { TransactionHistory, type TxEntry } from '@/components/wallet/TransactionHistory'
-
-const fmtTime = () => {
-  const d = new Date()
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`
-}
 
 export default function WalletPage() {
   const { accessToken, isLoading, initiateLogin, user } = useAuthStore()
   const [wallet, setWallet] = useState<Wallet | null>(null)
   const [isWalletLoading, setIsWalletLoading] = useState(true)
   const [walletLoadError, setWalletLoadError] = useState(false)
-  const [txHistory, setTxHistory] = useState<TxEntry[]>([])
 
   const username = user?.preferred_username ?? 'Jogador'
   const avatarLetter = username.charAt(0).toUpperCase()
@@ -79,29 +70,6 @@ export default function WalletPage() {
     }
   }
 
-  async function handleProcess(type: 'credit' | 'debit', amountCents: number, reset: () => void) {
-    if (!wallet) {
-      toast.error('Crie a carteira antes de movimentar saldo')
-      return
-    }
-    try {
-      const res =
-        type === 'credit' ? await walletsApi.creditWallet(amountCents) : await walletsApi.debitWallet(amountCents)
-
-      const updated = res.data ?? null
-      setWallet(updated)
-
-      const balanceAfter = updated ? Number(updated.balanceCents) : balanceCents
-      setTxHistory(prev => [{ id: Date.now(), type, amountCents, balanceAfter, time: fmtTime() }, ...prev].slice(0, 20))
-
-      toast.success(type === 'credit' ? 'Depósito realizado!' : 'Saque processado!')
-      reset()
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
-      toast.error(msg ?? 'Não foi possível processar a operação')
-    }
-  }
-
   if (isLoading || isWalletLoading) {
     return (
       <div className='flex min-h-screen items-center justify-center bg-zinc-950'>
@@ -125,7 +93,7 @@ export default function WalletPage() {
           <div>
             <p className='text-lg font-bold text-zinc-100 mb-1.5'>Carteira</p>
             <p className='text-sm text-zinc-500 leading-relaxed'>
-              Entre na sua conta para criar a carteira e ajustar saldo de teste.
+              Entre na sua conta para visualizar o saldo da sua carteira.
             </p>
           </div>
           <div className='flex gap-2.5'>
@@ -165,14 +133,22 @@ export default function WalletPage() {
             onRetry={() => void loadWallet()}
           />
 
-          <WalletStatsGrid txHistory={txHistory} />
-
-          <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-            <OperationCard type='credit' balance={balanceCents} disabled={!wallet} onProcess={handleProcess} />
-            <OperationCard type='debit' balance={balanceCents} disabled={!wallet} onProcess={handleProcess} />
+          <div className='bg-zinc-900 border border-zinc-800 rounded-2xl px-6 py-5'>
+            <p className='text-sm font-semibold text-zinc-100 mb-1.5'>Como funciona o saldo?</p>
+            <p className='text-sm text-zinc-500 leading-relaxed'>
+              O saldo é debitado automaticamente ao fazer uma aposta e creditado ao realizar o cash out. Todas as
+              movimentações acontecem em tempo real durante as rodadas do jogo.
+            </p>
+            <Link
+              href='/game'
+              className={cn(
+                buttonVariants({ variant: 'outline' }),
+                'mt-4 border-zinc-700 bg-zinc-800/90 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100'
+              )}
+            >
+              Ir para o jogo
+            </Link>
           </div>
-
-          <TransactionHistory txHistory={txHistory} onClear={() => setTxHistory([])} />
         </div>
       </main>
     </div>

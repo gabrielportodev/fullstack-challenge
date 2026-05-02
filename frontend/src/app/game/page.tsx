@@ -40,26 +40,16 @@ export default function CrashGamePage() {
   const username = user?.preferred_username ?? 'Visitante'
 
   const [betAmount, setBetAmount] = useState('10')
-  const [autoCashout, setAutoCashout] = useState('2.00')
-  const [autoEnabled, setAutoEnabled] = useState(false)
 
   const myBetRef = useRef<GameBet | null>(null)
   const phaseRef = useRef<GamePhase>('BETTING')
   const multRef = useRef(1.0)
-  const autoEnabledRef = useRef(false)
-  const autoCashoutRef = useRef('2.00')
   const onMultiplierTickRef = useRef<(mult: number) => void>(() => {})
   const prevAccessTokenRef = useRef<string | null>(null)
 
   useEffect(() => {
     myBetRef.current = myBet
   }, [myBet])
-  useEffect(() => {
-    autoEnabledRef.current = autoEnabled
-  }, [autoEnabled])
-  useEffect(() => {
-    autoCashoutRef.current = autoCashout
-  }, [autoCashout])
 
   useEffect(() => {
     const wasLoggedOut = prevAccessTokenRef.current === null
@@ -132,15 +122,10 @@ export default function CrashGamePage() {
   })
 
   useEffect(() => {
-    onMultiplierTickRef.current = (mult: number) => {
-      if (!autoEnabledRef.current) return
-      if (myBetRef.current?.status !== 'PENDING') return
-      const threshold = parseFloat(autoCashoutRef.current)
-      if (!isNaN(threshold) && mult >= threshold) {
-        triggerCashout(mult)
-      }
+    onMultiplierTickRef.current = (_mult: number) => {
+      // Auto cashout removed as requested
     }
-  }, [triggerCashout])
+  }, [])
 
   const canBet = phase === 'BETTING' && !myBet
   const canCashout = phase === 'ACTIVE' && myBet?.status === 'PENDING'
@@ -176,10 +161,6 @@ export default function CrashGamePage() {
           walletStatus={walletStatus}
           betAmount={betAmount}
           onBetAmountChange={setBetAmount}
-          autoCashout={autoCashout}
-          onAutoCashoutChange={setAutoCashout}
-          autoEnabled={autoEnabled}
-          onAutoEnabledChange={setAutoEnabled}
           multiplier={multiplier}
           potential={potential}
           canBet={canBet}
@@ -201,10 +182,6 @@ export default function CrashGamePage() {
           walletStatus={walletStatus}
           betAmount={betAmount}
           onBetAmountChange={setBetAmount}
-          autoCashout={autoCashout}
-          onAutoCashoutChange={setAutoCashout}
-          autoEnabled={autoEnabled}
-          onAutoEnabledChange={setAutoEnabled}
           multiplier={multiplier}
           potential={potential}
           canBet={canBet}

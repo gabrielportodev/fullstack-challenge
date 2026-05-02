@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { WalletStatus } from '@/stores/game.store'
 import { fmtBRL } from '@/lib/crash-game'
@@ -17,10 +16,6 @@ interface BetControlsProps {
   walletStatus: WalletStatus
   betAmount: string
   onBetAmountChange: (v: string) => void
-  autoCashout: string
-  onAutoCashoutChange: (v: string) => void
-  autoEnabled: boolean
-  onAutoEnabledChange: (v: boolean) => void
   multiplier: number
   potential: number | null
   canBet: boolean
@@ -40,10 +35,6 @@ export function BetControls({
   walletStatus,
   betAmount,
   onBetAmountChange,
-  autoCashout,
-  onAutoCashoutChange,
-  autoEnabled,
-  onAutoEnabledChange,
   potential,
   canBet,
   canCashout,
@@ -88,72 +79,40 @@ export function BetControls({
   if (compact) {
     return (
       <div className='flex flex-col gap-3'>
-        <div className='grid grid-cols-2 gap-3'>
-          {/* Bet Amount Card */}
-          <div className='flex flex-col gap-1.5'>
-            <div className='flex justify-between items-center px-1'>
-              <Label className='text-[10px] font-black uppercase text-zinc-500 tracking-tighter'>Quantia</Label>
-              <div className='flex gap-1'>
-                <Button
-                  variant='outline'
-                  onClick={() => multiplyAmount(0.5)}
-                  disabled={betDisabled}
-                  className='text-[9px] font-bold text-zinc-400 hover:text-zinc-100 bg-zinc-800 h-auto py-0.5 px-1.5 border-zinc-700 disabled:opacity-30'
-                >
-                  ½
-                </Button>
-                <Button
-                  variant='outline'
-                  onClick={() => multiplyAmount(2)}
-                  disabled={betDisabled}
-                  className='text-[9px] font-bold text-zinc-400 hover:text-zinc-100 bg-zinc-800 h-auto py-0.5 px-1.5 border-zinc-700 disabled:opacity-30'
-                >
-                  2×
-                </Button>
-              </div>
-            </div>
-            <div className='flex items-center bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden h-11 focus-within:border-emerald-500/40 transition-all'>
-              <div className='pl-3 pr-1 text-zinc-600 font-bold text-xs'>R$</div>
-              <Input
-                type='number'
-                value={betAmount}
-                onChange={e => onBetAmountChange(e.target.value)}
-                disabled={!walletReady || !canBet}
-                className='border-0 bg-transparent text-sm font-black focus-visible:ring-0 h-full p-0'
-              />
+        <div className='flex flex-col gap-1.5'>
+          <div className='flex justify-between items-center px-1'>
+            <Label className='text-[10px] font-black uppercase text-zinc-500 tracking-tighter'>Quantia</Label>
+            <div className='flex gap-1'>
+              <Button
+                variant='outline'
+                onClick={() => multiplyAmount(0.5)}
+                disabled={betDisabled}
+                className='text-[9px] font-bold text-zinc-400 hover:text-zinc-100 bg-zinc-800 h-auto py-0.5 px-1.5 border-zinc-700 disabled:opacity-30'
+              >
+                ½
+              </Button>
+              <Button
+                variant='outline'
+                onClick={() => multiplyAmount(2)}
+                disabled={betDisabled}
+                className='text-[9px] font-bold text-zinc-400 hover:text-zinc-100 bg-zinc-800 h-auto py-0.5 px-1.5 border-zinc-700 disabled:opacity-30'
+              >
+                2×
+              </Button>
             </div>
           </div>
-
-          {/* Auto Cashout Card */}
-          <div className='flex flex-col gap-1.5'>
-            <div className='flex justify-between items-center px-1'>
-              <Label className='text-[10px] font-black uppercase text-zinc-500 tracking-tighter'>Auto-Saque</Label>
-              <Switch
-                checked={autoEnabled}
-                onCheckedChange={onAutoEnabledChange}
-                className='scale-75 data-[state=checked]:bg-emerald-500'
-              />
-            </div>
-            <div
-              className={cn(
-                'flex items-center bg-zinc-900 border rounded-xl overflow-hidden h-11 transition-all',
-                autoEnabled ? 'border-zinc-700' : 'border-zinc-800 opacity-50'
-              )}
-            >
-              <div className='pl-3 pr-1 text-zinc-600 font-bold text-xs'>×</div>
-              <Input
-                type='number'
-                step='0.1'
-                value={autoCashout}
-                onChange={e => onAutoCashoutChange(e.target.value)}
-                disabled={!autoEnabled}
-                className='border-0 bg-transparent text-sm font-black focus-visible:ring-0 h-full p-0'
-              />
-            </div>
+          <div className='flex items-center bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden h-11 focus-within:border-emerald-500/40 transition-all'>
+            <div className='pl-3 pr-1 text-zinc-600 font-bold text-xs'>R$</div>
+            <Input
+              type='number'
+              value={betAmount}
+              onChange={e => onBetAmountChange(e.target.value)}
+              disabled={!walletReady || !canBet}
+              className='border-0 bg-transparent text-sm font-black focus-visible:ring-0 h-full p-0'
+            />
           </div>
         </div>
 
-        {/* Action Button */}
         {canCashout ? (
           <Button
             className='w-full h-12 text-sm font-black bg-amber-500 hover:bg-amber-400 text-zinc-900 animate-pulse-ring rounded-xl shadow-lg shadow-amber-500/10'
@@ -190,7 +149,6 @@ export function BetControls({
 
   return (
     <div className='px-3 flex flex-col gap-4 pb-4'>
-      {/* Bet amount */}
       <div className='flex flex-col gap-2'>
         <div className='flex justify-between items-end'>
           <Label className='text-[10px] font-black uppercase tracking-widest text-zinc-500'>Valor da Aposta</Label>
@@ -234,7 +192,6 @@ export function BetControls({
         </div>
       </div>
 
-      {/* Quick amounts */}
       <div className='grid grid-cols-4 gap-2'>
         {QUICK_AMOUNTS.map(v => (
           <Button
@@ -250,39 +207,6 @@ export function BetControls({
         ))}
       </div>
 
-      {/* Auto cashout toggle */}
-      <div
-        className={cn(
-          'flex items-center gap-3 px-4 py-3 rounded-xl border transition-all',
-          autoEnabled ? 'bg-zinc-900/50 border-emerald-500/20' : 'bg-zinc-900/30 border-zinc-800'
-        )}
-      >
-        <Switch
-          checked={autoEnabled}
-          onCheckedChange={onAutoEnabledChange}
-          className='data-[state=checked]:bg-emerald-500'
-        />
-        <div className='flex flex-col flex-1 cursor-pointer' onClick={() => onAutoEnabledChange(!autoEnabled)}>
-          <Label className='text-[10px] font-black uppercase tracking-widest text-zinc-500 cursor-pointer'>
-            Auto Cash Out
-          </Label>
-          <span className='text-[9px] text-zinc-600 font-bold'>Saque automático ativado</span>
-        </div>
-        <div className='relative flex items-center bg-zinc-950 px-2 py-1 rounded-lg border border-zinc-800'>
-          <span className='text-zinc-600 font-black text-xs mr-1'>×</span>
-          <Input
-            type='number'
-            step='0.1'
-            min='1.1'
-            value={autoCashout}
-            onChange={e => onAutoCashoutChange(e.target.value)}
-            disabled={!autoEnabled}
-            className='w-14 h-7 text-center text-xs font-black bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0'
-          />
-        </div>
-      </div>
-
-      {/* Action button */}
       {canCashout ? (
         <div className='flex flex-col gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300'>
           <Button
