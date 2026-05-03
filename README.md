@@ -14,9 +14,9 @@ cp services/games/.env.example services/games/.env
 cp services/wallets/.env.example services/wallets/.env
 cp frontend/.env.example frontend/.env
 
-# 2. Instalar dependências e subir a stack
+# 2. Instalar dependências e subir toda a infra
 bun install         # instala dependências do monorepo
-bun run docker:up   # sobe toda a stack
+bun run docker:up   # sobe toda a infra
 ```
 
 Acesse em **[http://localhost:3000](http://localhost:3000)**.
