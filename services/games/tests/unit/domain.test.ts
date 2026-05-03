@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'bun:test'
+import { createHash } from 'crypto'
 import { Round } from '@/domain/round'
 import { Bet } from '@/domain/bet'
 import { CrashPoint } from '@/domain/crash-point'
@@ -9,10 +10,27 @@ describe('CrashPoint', () => {
     expect(CrashPoint.verify(cp.serverSeed)).toBe(cp.value)
   })
 
-  it('gera hash da seed antes de revelar', () => {
+  it('produz o mesmo valor para a mesma seed (reprodutível)', () => {
     const cp = CrashPoint.generate()
-    expect(cp.seedHash).toBeTruthy()
-    expect(cp.serverSeed).toBeTruthy()
+    expect(CrashPoint.verify(cp.serverSeed)).toBe(CrashPoint.verify(cp.serverSeed))
+  })
+
+  it('seedHash é SHA256 do serverSeed (hash chain verificável)', () => {
+    const cp = CrashPoint.generate()
+    const expected = createHash('sha256').update(cp.serverSeed).digest('hex')
+    expect(cp.seedHash).toBe(expected)
+  })
+
+  it('seedHash é diferente do serverSeed', () => {
+    const cp = CrashPoint.generate()
+    expect(cp.seedHash).not.toBe(cp.serverSeed)
+  })
+
+  it('crash point é >= 1.00x', () => {
+    for (let i = 0; i < 20; i++) {
+      const cp = CrashPoint.generate()
+      expect(cp.value).toBeGreaterThanOrEqual(1.0)
+    }
   })
 })
 

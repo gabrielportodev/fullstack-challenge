@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { fmtBRL } from '@/lib/crash-game'
 import type { Wallet } from '@/api/wallets.api'
 
 interface WalletBalanceCardProps {

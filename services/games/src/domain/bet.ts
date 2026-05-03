@@ -41,7 +41,8 @@ export class Bet {
     if (this.status !== 'PENDING') throw new Error('Aposta já encerrada')
     this.status = 'CASHED_OUT'
     this.cashoutMultiplier = multiplier
-    this.cashoutPayoutCents = BigInt(Math.floor(Number(this.amountCents) * multiplier))
+    const multiplierBasisPoints = BigInt(Math.floor(multiplier * 100))
+    this.cashoutPayoutCents = (this.amountCents * multiplierBasisPoints) / 100n
   }
 
   lose(): void {

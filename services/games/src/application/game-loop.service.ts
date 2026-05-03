@@ -170,7 +170,8 @@ export class GameLoopService extends EventEmitter implements OnApplicationBootst
         continue
       }
 
-      const payoutCents = BigInt(Math.floor(Number(record.amountCents) * target))
+      const multiplierBasisPoints = BigInt(Math.floor(target * 100))
+      const payoutCents = (record.amountCents * multiplierBasisPoints) / 100n
 
       try {
         const updated = await this.prisma.bet.updateMany({
