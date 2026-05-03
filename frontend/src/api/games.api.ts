@@ -1,6 +1,13 @@
 import { api } from '@/lib/api'
 import type { ArrayResponseType, ResponseType } from '@crash/types'
-import type { Bet, BetsResponse, Round, RoundHistoryResponse, VerifyRoundResponse } from '@/types/games'
+import type {
+  Bet,
+  BetsResponse,
+  PlaceBetRequest,
+  Round,
+  RoundHistoryResponse,
+  VerifyRoundResponse
+} from '@/types/games'
 
 export const gamesApi = {
   getCurrentRound: () => api.get<ResponseType<Round>>('/games/rounds/current').then(r => r.data),
@@ -14,9 +21,9 @@ export const gamesApi = {
   getMyBets: (page = 1, limit = 20) =>
     api.get<ArrayResponseType<Bet>>('/games/bets/me', { params: { page, limit } }).then(r => r.data),
 
-  placeBet: (amountCents: number) => api.post<ResponseType<Bet>>('/games/bet', { amountCents }).then(r => r.data),
+  placeBet: (payload: PlaceBetRequest) => api.post<ResponseType<Bet>>('/games/bet', payload).then(r => r.data),
 
   cashout: () => api.post<ResponseType<Bet>>('/games/bet/cashout').then(r => r.data)
 }
 
-export type { Round, Bet, RoundHistoryResponse, BetsResponse, VerifyRoundResponse }
+export type { Round, Bet, RoundHistoryResponse, BetsResponse, VerifyRoundResponse, PlaceBetRequest }

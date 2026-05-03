@@ -15,6 +15,7 @@ interface UseGameActionsParams {
   accessToken: string | null
   walletStatus: WalletStatus
   betAmount: string
+  autoCashout: string
   balance: number
   username: string
   initiateLogin: () => Promise<void>
@@ -31,6 +32,7 @@ export function useGameActions({
   accessToken,
   walletStatus,
   betAmount,
+  autoCashout,
   balance,
   username,
   initiateLogin,
@@ -100,8 +102,18 @@ export function useGameActions({
       return
     }
 
+    let autoCashoutMultiplier: number | undefined
+    if (autoCashout.trim() !== '') {
+      const parsed = parseFloat(autoCashout)
+      if (isNaN(parsed) || parsed < 1.01) {
+        toast.error('Auto cashout mínimo: 1.01x')
+        return
+      }
+      autoCashoutMultiplier = parsed
+    }
+
     try {
-      const res = await gamesApi.placeBet(cents)
+      const res = await gamesApi.placeBet({ amountCents: cents, autoCashoutMultiplier })
       if (res.data) {
         const bet: GameBet = {
           id: res.data.id,
@@ -123,6 +135,7 @@ export function useGameActions({
     accessToken,
     walletStatus,
     betAmount,
+    autoCashout,
     balance,
     phaseRef,
     myBetRef,

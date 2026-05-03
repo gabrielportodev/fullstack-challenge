@@ -2,6 +2,7 @@ export type BetStatus = 'PENDING' | 'CASHED_OUT' | 'LOST'
 
 const MIN_BET = 100n
 const MAX_BET = 100_000n
+const MIN_AUTO_CASHOUT = 1.01
 
 export class Bet {
   id: string
@@ -11,10 +12,20 @@ export class Bet {
   status: BetStatus
   cashoutMultiplier: number | null
   cashoutPayoutCents: bigint | null
+  autoCashoutMultiplier: number | null
 
-  constructor(id: string, roundId: string, playerId: string, amountCents: bigint) {
+  constructor(
+    id: string,
+    roundId: string,
+    playerId: string,
+    amountCents: bigint,
+    autoCashoutMultiplier: number | null = null
+  ) {
     if (amountCents < MIN_BET) throw new Error(`Aposta mínima é ${MIN_BET} cents`)
     if (amountCents > MAX_BET) throw new Error(`Aposta máxima é ${MAX_BET} cents`)
+    if (autoCashoutMultiplier !== null && autoCashoutMultiplier < MIN_AUTO_CASHOUT) {
+      throw new Error(`Auto cashout mínimo é ${MIN_AUTO_CASHOUT}x`)
+    }
 
     this.id = id
     this.roundId = roundId
@@ -23,6 +34,7 @@ export class Bet {
     this.status = 'PENDING'
     this.cashoutMultiplier = null
     this.cashoutPayoutCents = null
+    this.autoCashoutMultiplier = autoCashoutMultiplier
   }
 
   cashout(multiplier: number): void {

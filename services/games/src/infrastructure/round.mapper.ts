@@ -7,6 +7,12 @@ export type RoundWithBets = Prisma.RoundGetPayload<{ include: { bets: true } }>
 export function hydrateRound(record: RoundWithBets): Round {
   return Object.assign(new Round(record.id), {
     status: record.status,
-    bets: record.bets.map(b => Object.assign(new Bet(b.id, b.roundId, b.playerId, b.amountCents), { status: b.status }))
+    bets: record.bets.map(b =>
+      Object.assign(new Bet(b.id, b.roundId, b.playerId, b.amountCents, b.autoCashoutMultiplier), {
+        status: b.status,
+        cashoutMultiplier: b.cashoutMultiplier,
+        cashoutPayoutCents: b.cashoutPayoutCents
+      })
+    )
   })
 }

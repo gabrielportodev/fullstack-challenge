@@ -14,6 +14,7 @@ const mockBetRecord = {
   status: 'PENDING' as BetStatus,
   cashoutMultiplier: null,
   cashoutPayoutCents: null,
+  autoCashoutMultiplier: null,
   createdAt: new Date()
 }
 

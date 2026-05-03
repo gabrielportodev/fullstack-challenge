@@ -28,6 +28,7 @@ model Bet {
   status             BetStatus @default(PENDING)
   cashoutMultiplier  Float?    @map("cashout_multiplier")
   cashoutPayoutCents BigInt?   @map("cashout_payout_cents")
+  autoCashoutMultiplier Float? @map("auto_cashout_multiplier")
   createdAt          DateTime  @default(now()) @map("created_at")
   round              Round     @relation(fields: [roundId], references: [id])
 

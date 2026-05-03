@@ -14,7 +14,7 @@ export class PlaceBetUseCase {
     private readonly gameLoop: GameLoopService
   ) {}
 
-  async execute(playerId: string, amountCents: bigint, username?: string) {
+  async execute(playerId: string, amountCents: bigint, username?: string, autoCashoutMultiplier: number | null = null) {
     const record = await this.prisma.round.findFirst({
       where: { status: 'BETTING' },
       include: { bets: true }
@@ -28,7 +28,7 @@ export class PlaceBetUseCase {
 
     let bet: Bet
     try {
-      bet = new Bet(randomUUID(), round.id, playerId, amountCents)
+      bet = new Bet(randomUUID(), round.id, playerId, amountCents, autoCashoutMultiplier)
       round.placeBet(bet)
     } catch (err) {
       throw new BadRequestException(err.message)
@@ -39,7 +39,8 @@ export class PlaceBetUseCase {
         id: bet.id,
         roundId: bet.roundId,
         playerId: bet.playerId,
-        amountCents: bet.amountCents
+        amountCents: bet.amountCents,
+        autoCashoutMultiplier: bet.autoCashoutMultiplier
       }
     })
 

@@ -6,4 +6,11 @@ export class PlaceBetDto {
     example: 5000
   })
   amountCents: number
+
+  @ApiProperty({
+    description: 'Multiplicador alvo opcional para saque automático (mínimo 1.01x)',
+    example: 2.0,
+    required: false
+  })
+  autoCashoutMultiplier?: number
 }

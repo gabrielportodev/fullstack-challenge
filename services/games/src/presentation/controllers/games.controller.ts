@@ -239,7 +239,12 @@ export class GamesController {
     @Request() req: { user: { id: string; username: string } },
     @Body() body: PlaceBetDto
   ): Promise<ResponseType<unknown>> {
-    const data = await this.placeBet.execute(req.user.id, BigInt(body.amountCents), req.user.username)
+    const data = await this.placeBet.execute(
+      req.user.id,
+      BigInt(body.amountCents),
+      req.user.username,
+      body.autoCashoutMultiplier ?? null
+    )
     return { success: true, message: 'Aposta registrada', data }
   }
 

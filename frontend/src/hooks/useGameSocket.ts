@@ -15,6 +15,7 @@ interface UseGameSocketOptions {
   onNewRound: () => void
   onMyBetLost: () => void
   onMyBetCancelled: () => void
+  onMyBetAutoCashout: (multiplier: number, payoutCents: number) => void
   onSound?: (sound: SoundName) => void
 }
 
@@ -24,6 +25,7 @@ export function useGameSocket({
   onNewRound,
   onMyBetLost,
   onMyBetCancelled,
+  onMyBetAutoCashout,
   onSound
 }: UseGameSocketOptions) {
   const phase = useGameStore(s => s.phase)
@@ -48,6 +50,7 @@ export function useGameSocket({
   const onNewRoundRef = useRef(onNewRound)
   const onMyBetLostRef = useRef(onMyBetLost)
   const onMyBetCancelledRef = useRef(onMyBetCancelled)
+  const onMyBetAutoCashoutRef = useRef(onMyBetAutoCashout)
   const onSoundRef = useRef(onSound)
 
   useEffect(() => {
@@ -59,6 +62,9 @@ export function useGameSocket({
   useEffect(() => {
     onMyBetCancelledRef.current = onMyBetCancelled
   }, [onMyBetCancelled])
+  useEffect(() => {
+    onMyBetAutoCashoutRef.current = onMyBetAutoCashout
+  }, [onMyBetAutoCashout])
   useEffect(() => {
     onSoundRef.current = onSound
   }, [onSound])
@@ -163,8 +169,15 @@ export function useGameSocket({
       })
     })
 
-    socket.on('bet:cashout', (data: { betId: string; multiplier: number; payoutCents: number }) => {
+    socket.on('bet:cashout', (data: { betId: string; multiplier: number; payoutCents: number; auto?: boolean }) => {
       onSoundRef.current?.('cashout')
+
+      const isMine = myBetRef.current?.id === data.betId
+      const wasPending = myBetRef.current?.status === 'PENDING'
+      if (isMine && wasPending) {
+        onMyBetAutoCashoutRef.current(data.multiplier, Number(data.payoutCents))
+      }
+
       setBets(prev => {
         const updated = prev.map(b =>
           b.id === data.betId ? { ...b, status: 'CASHED_OUT' as const, cashoutMultiplier: data.multiplier } : b
@@ -177,7 +190,7 @@ export function useGameSocket({
               username: bet.username,
               mult: data.multiplier,
               t: performance.now() / 1000,
-              isMe: false
+              isMe: isMine
             }
           ])
         }

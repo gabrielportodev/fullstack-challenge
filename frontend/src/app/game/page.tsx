@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { fmtBRL, fmtMult } from '@/lib/crash-game'
 import { useAuthStore } from '@/stores/auth.store'
 import { useGameStore } from '@/stores/game.store'
 import { walletsApi } from '@/api/wallets.api'
@@ -42,6 +43,7 @@ export default function CrashGamePage() {
 
   const { play: playSound } = useSounds()
   const [betAmount, setBetAmount] = useState('10')
+  const [autoCashout, setAutoCashout] = useState('')
 
   const myBetRef = useRef<GameBet | null>(null)
   const phaseRef = useRef<GamePhase>('BETTING')
@@ -98,6 +100,11 @@ export default function CrashGamePage() {
       if (myBetRef.current) setBalance(b => b + myBetRef.current!.amountCents)
       setMyBet(null)
     },
+    onMyBetAutoCashout: (mult, payoutCents) => {
+      setBalance(b => b + payoutCents)
+      setMyBet(prev => (prev ? { ...prev, status: 'CASHED_OUT', cashoutMultiplier: mult } : null))
+      toast.success(`Auto Cashout: ${fmtBRL(payoutCents)} @ ${fmtMult(mult)}`)
+    },
     onSound: playSound
   })
 
@@ -114,6 +121,7 @@ export default function CrashGamePage() {
     accessToken,
     walletStatus,
     betAmount,
+    autoCashout,
     balance,
     username,
     initiateLogin,
@@ -158,6 +166,8 @@ export default function CrashGamePage() {
           walletStatus={walletStatus}
           betAmount={betAmount}
           onBetAmountChange={setBetAmount}
+          autoCashout={autoCashout}
+          onAutoCashoutChange={setAutoCashout}
           multiplier={multiplier}
           potential={potential}
           canBet={canBet}
@@ -179,6 +189,8 @@ export default function CrashGamePage() {
           walletStatus={walletStatus}
           betAmount={betAmount}
           onBetAmountChange={setBetAmount}
+          autoCashout={autoCashout}
+          onAutoCashoutChange={setAutoCashout}
           multiplier={multiplier}
           potential={potential}
           canBet={canBet}

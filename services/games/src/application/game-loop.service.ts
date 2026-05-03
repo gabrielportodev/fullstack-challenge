@@ -1,6 +1,7 @@
 import { Injectable, OnApplicationBootstrap, OnModuleDestroy, Logger } from '@nestjs/common'
 import { EventEmitter } from 'events'
 import { PrismaService } from '@/infrastructure/prisma.service'
+import { RabbitMQPublisher } from '@/infrastructure/rabbitmq.publisher'
 import { Round } from '@/domain/round'
 import { randomUUID } from 'crypto'
 
@@ -28,8 +29,12 @@ export class GameLoopService extends EventEmitter implements OnApplicationBootst
   private bettingEndsAt = 0
   private tickTimer: ReturnType<typeof setInterval> | null = null
   private running = false
+  private autoCashoutInProgress = new Set<string>()
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly publisher: RabbitMQPublisher
+  ) {
     super()
   }
 
@@ -130,6 +135,8 @@ export class GameLoopService extends EventEmitter implements OnApplicationBootst
           elapsed
         })
 
+        void this.processAutoCashouts(this.currentMultiplier, crashPoint)
+
         if (this.currentMultiplier >= crashPoint) {
           clearInterval(this.tickTimer!)
           this.tickTimer = null
@@ -139,6 +146,62 @@ export class GameLoopService extends EventEmitter implements OnApplicationBootst
     })
 
     await this.crashRound()
+  }
+
+  private async processAutoCashouts(currentMultiplier: number, crashPoint: number) {
+    if (!this.currentRound) return
+    if (currentMultiplier >= crashPoint) return
+
+    const candidates = await this.prisma.bet.findMany({
+      where: {
+        roundId: this.currentRound.id,
+        status: 'PENDING',
+        autoCashoutMultiplier: { not: null, lte: currentMultiplier }
+      }
+    })
+
+    for (const record of candidates) {
+      if (this.autoCashoutInProgress.has(record.id)) continue
+      this.autoCashoutInProgress.add(record.id)
+
+      const target = record.autoCashoutMultiplier!
+      if (target > crashPoint) {
+        this.autoCashoutInProgress.delete(record.id)
+        continue
+      }
+
+      const payoutCents = BigInt(Math.floor(Number(record.amountCents) * target))
+
+      try {
+        const updated = await this.prisma.bet.updateMany({
+          where: { id: record.id, status: 'PENDING' },
+          data: {
+            status: 'CASHED_OUT',
+            cashoutMultiplier: target,
+            cashoutPayoutCents: payoutCents
+          }
+        })
+
+        if (updated.count === 0) {
+          this.autoCashoutInProgress.delete(record.id)
+          continue
+        }
+
+        this.publisher.creditWallet(record.playerId, payoutCents)
+
+        this.emit(GAME_EVENTS.BET_CASHOUT, {
+          roundId: this.currentRound.id,
+          betId: record.id,
+          playerId: record.playerId,
+          multiplier: target,
+          payoutCents: payoutCents.toString(),
+          auto: true
+        })
+      } catch (err) {
+        this.logger.error(`Erro no auto cashout da aposta ${record.id}`, err)
+        this.autoCashoutInProgress.delete(record.id)
+      }
+    }
   }
 
   private async crashRound() {

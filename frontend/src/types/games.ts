@@ -17,7 +17,13 @@ export interface Bet {
   status: 'PENDING' | 'CASHED_OUT' | 'LOST'
   cashoutMultiplier: number | null
   cashoutPayoutCents: string | null
+  autoCashoutMultiplier: number | null
   createdAt: string
+}
+
+export interface PlaceBetRequest {
+  amountCents: number
+  autoCashoutMultiplier?: number
 }
 
 export interface RoundHistoryResponse {

@@ -16,6 +16,8 @@ interface BetControlsProps {
   walletStatus: WalletStatus
   betAmount: string
   onBetAmountChange: (v: string) => void
+  autoCashout: string
+  onAutoCashoutChange: (v: string) => void
   multiplier: number
   potential: number | null
   canBet: boolean
@@ -35,6 +37,8 @@ export function BetControls({
   walletStatus,
   betAmount,
   onBetAmountChange,
+  autoCashout,
+  onAutoCashoutChange,
   potential,
   canBet,
   canCashout,
@@ -110,6 +114,23 @@ export function BetControls({
               disabled={!walletReady || !canBet}
               className='border-0 bg-transparent text-sm font-black focus-visible:ring-0 h-full p-0 pl-4'
             />
+          </div>
+        </div>
+
+        <div className='flex flex-col gap-1.5'>
+          <Label className='text-[10px] font-black uppercase text-zinc-500 tracking-tighter px-1'>Auto Cashout</Label>
+          <div className='flex items-center bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden h-10 focus-within:border-cyan-500/40 transition-all'>
+            <Input
+              type='number'
+              step='0.01'
+              min='1.01'
+              placeholder='Opcional (ex: 2.00)'
+              value={autoCashout}
+              onChange={e => onAutoCashoutChange(e.target.value)}
+              disabled={!walletReady || !canBet}
+              className='border-0 bg-transparent text-sm font-black focus-visible:ring-0 h-full p-0 pl-3 placeholder:text-zinc-600 placeholder:font-normal'
+            />
+            <div className='px-3 text-cyan-400 font-bold text-xl'>×</div>
           </div>
         </div>
 
@@ -189,6 +210,23 @@ export function BetControls({
               x2
             </Button>
           </div>
+        </div>
+      </div>
+
+      <div className='flex flex-col gap-2'>
+        <Label className='text-[10px] font-black uppercase tracking-widest text-zinc-500'>Auto Cashout</Label>
+        <div className='group flex items-center bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden focus-within:border-cyan-500/50 transition-all shadow-inner'>
+          <Input
+            type='number'
+            step='0.01'
+            min='1.01'
+            placeholder='Opcional (ex: 2.00)'
+            value={autoCashout}
+            onChange={e => onAutoCashoutChange(e.target.value)}
+            disabled={!walletReady || !canBet}
+            className='border-0 bg-transparent text-base font-black focus-visible:ring-0 focus-visible:ring-offset-0 h-11 p-0 pl-4 placeholder:text-zinc-600 placeholder:font-normal'
+          />
+          <div className='px-4 text-cyan-400 font-black text-xl'>×</div>
         </div>
       </div>
 
