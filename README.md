@@ -9,14 +9,11 @@ Implementação de um jogo de Crash multiplayer em tempo real, desenvolvido como
 Requisitos: **Docker** e **Bun** instalados.
 
 ```bash
-# 1. Copiar variáveis de ambiente
-cp services/games/.env.example services/games/.env
-cp services/wallets/.env.example services/wallets/.env
-cp frontend/.env.example frontend/.env
+# 1. Instalar dependências
+bun install
 
-# 2. Instalar dependências e subir toda a infra
-bun install         # instala dependências do monorepo
-bun run docker:up   # sobe toda a infra
+# 2. Subir toda a infra
+bun run docker:up
 ```
 
 Acesse em **[http://localhost:3000](http://localhost:3000)**.
