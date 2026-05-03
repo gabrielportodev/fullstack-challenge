@@ -18,6 +18,8 @@ interface ControlPanelProps {
   onBetAmountChange: (v: string) => void
   autoCashout: string
   onAutoCashoutChange: (v: string) => void
+  autoCashoutEnabled: boolean
+  onAutoCashoutEnabledChange: (v: boolean) => void
   multiplier: number
   potential: number | null
   canBet: boolean
@@ -39,6 +41,8 @@ export function ControlPanel({
   onBetAmountChange,
   autoCashout,
   onAutoCashoutChange,
+  autoCashoutEnabled,
+  onAutoCashoutEnabledChange,
   multiplier,
   potential,
   canBet,
@@ -67,6 +71,8 @@ export function ControlPanel({
         onBetAmountChange={onBetAmountChange}
         autoCashout={autoCashout}
         onAutoCashoutChange={onAutoCashoutChange}
+        autoCashoutEnabled={autoCashoutEnabled}
+        onAutoCashoutEnabledChange={onAutoCashoutEnabledChange}
         multiplier={multiplier}
         potential={potential}
         canBet={canBet}

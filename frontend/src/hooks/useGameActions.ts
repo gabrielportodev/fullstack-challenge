@@ -16,6 +16,7 @@ interface UseGameActionsParams {
   walletStatus: WalletStatus
   betAmount: string
   autoCashout: string
+  autoCashoutEnabled: boolean
   balance: number
   username: string
   initiateLogin: () => Promise<void>
@@ -33,6 +34,7 @@ export function useGameActions({
   walletStatus,
   betAmount,
   autoCashout,
+  autoCashoutEnabled,
   balance,
   username,
   initiateLogin,
@@ -103,13 +105,16 @@ export function useGameActions({
     }
 
     let autoCashoutMultiplier: number | undefined
-    if (autoCashout.trim() !== '') {
+    if (autoCashoutEnabled && autoCashout.trim() !== '') {
       const parsed = parseFloat(autoCashout)
       if (isNaN(parsed) || parsed < 1.01) {
         toast.error('Auto cashout mínimo: 1.01x')
         return
       }
       autoCashoutMultiplier = parsed
+    } else if (autoCashoutEnabled) {
+      toast.error('Informe o multiplicador do Auto Cashout')
+      return
     }
 
     try {
@@ -136,6 +141,7 @@ export function useGameActions({
     walletStatus,
     betAmount,
     autoCashout,
+    autoCashoutEnabled,
     balance,
     phaseRef,
     myBetRef,

@@ -44,6 +44,7 @@ export default function CrashGamePage() {
   const { play: playSound } = useSounds()
   const [betAmount, setBetAmount] = useState('10')
   const [autoCashout, setAutoCashout] = useState('')
+  const [autoCashoutEnabled, setAutoCashoutEnabled] = useState(false)
 
   const myBetRef = useRef<GameBet | null>(null)
   const phaseRef = useRef<GamePhase>('BETTING')
@@ -122,6 +123,7 @@ export default function CrashGamePage() {
     walletStatus,
     betAmount,
     autoCashout,
+    autoCashoutEnabled,
     balance,
     username,
     initiateLogin,
@@ -168,6 +170,8 @@ export default function CrashGamePage() {
           onBetAmountChange={setBetAmount}
           autoCashout={autoCashout}
           onAutoCashoutChange={setAutoCashout}
+          autoCashoutEnabled={autoCashoutEnabled}
+          onAutoCashoutEnabledChange={setAutoCashoutEnabled}
           multiplier={multiplier}
           potential={potential}
           canBet={canBet}
@@ -191,6 +195,8 @@ export default function CrashGamePage() {
           onBetAmountChange={setBetAmount}
           autoCashout={autoCashout}
           onAutoCashoutChange={setAutoCashout}
+          autoCashoutEnabled={autoCashoutEnabled}
+          onAutoCashoutEnabledChange={setAutoCashoutEnabled}
           multiplier={multiplier}
           potential={potential}
           canBet={canBet}

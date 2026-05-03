@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Switch } from '@/components/ui/switch'
 import type { WalletStatus } from '@/stores/game.store'
 import { fmtBRL } from '@/lib/crash-game'
 import type { GameBet, GamePhase } from '@/types/crash-game'
@@ -18,6 +19,8 @@ interface BetControlsProps {
   onBetAmountChange: (v: string) => void
   autoCashout: string
   onAutoCashoutChange: (v: string) => void
+  autoCashoutEnabled: boolean
+  onAutoCashoutEnabledChange: (v: boolean) => void
   multiplier: number
   potential: number | null
   canBet: boolean
@@ -39,6 +42,8 @@ export function BetControls({
   onBetAmountChange,
   autoCashout,
   onAutoCashoutChange,
+  autoCashoutEnabled,
+  onAutoCashoutEnabledChange,
   potential,
   canBet,
   canCashout,
@@ -118,16 +123,29 @@ export function BetControls({
         </div>
 
         <div className='flex flex-col gap-1.5'>
-          <Label className='text-[10px] font-black uppercase text-zinc-500 tracking-tighter px-1'>Auto Cashout</Label>
-          <div className='flex items-center bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden h-10 focus-within:border-cyan-500/40 transition-all'>
+          <div className='flex items-center justify-between px-1'>
+            <Label className='text-[10px] font-black uppercase text-zinc-500 tracking-tighter'>Auto Cashout</Label>
+            <Switch
+              size='sm'
+              checked={autoCashoutEnabled}
+              onCheckedChange={onAutoCashoutEnabledChange}
+              disabled={!walletReady || !canBet}
+            />
+          </div>
+          <div
+            className={cn(
+              'flex items-center bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden h-10 transition-all',
+              autoCashoutEnabled ? 'focus-within:border-cyan-500/40' : 'opacity-50'
+            )}
+          >
             <Input
               type='number'
               step='0.01'
               min='1.01'
-              placeholder='Opcional (ex: 2.00)'
+              placeholder='Ex: 2.00'
               value={autoCashout}
               onChange={e => onAutoCashoutChange(e.target.value)}
-              disabled={!walletReady || !canBet}
+              disabled={!walletReady || !canBet || !autoCashoutEnabled}
               className='border-0 bg-transparent text-sm font-black focus-visible:ring-0 h-full p-0 pl-3 placeholder:text-zinc-600 placeholder:font-normal'
             />
             <div className='px-3 text-cyan-400 font-bold text-xl'>×</div>
@@ -213,23 +231,6 @@ export function BetControls({
         </div>
       </div>
 
-      <div className='flex flex-col gap-2'>
-        <Label className='text-[10px] font-black uppercase tracking-widest text-zinc-500'>Auto Cashout</Label>
-        <div className='group flex items-center bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden focus-within:border-cyan-500/50 transition-all shadow-inner'>
-          <Input
-            type='number'
-            step='0.01'
-            min='1.01'
-            placeholder='Opcional (ex: 2.00)'
-            value={autoCashout}
-            onChange={e => onAutoCashoutChange(e.target.value)}
-            disabled={!walletReady || !canBet}
-            className='border-0 bg-transparent text-base font-black focus-visible:ring-0 focus-visible:ring-offset-0 h-11 p-0 pl-4 placeholder:text-zinc-600 placeholder:font-normal'
-          />
-          <div className='px-4 text-cyan-400 font-black text-xl'>×</div>
-        </div>
-      </div>
-
       <div className='grid grid-cols-4 gap-2'>
         {QUICK_AMOUNTS.map(v => (
           <Button
@@ -243,6 +244,36 @@ export function BetControls({
             +{v}
           </Button>
         ))}
+      </div>
+
+      <div className='flex flex-col gap-2'>
+        <div className='flex items-center justify-between'>
+          <Label className='text-[10px] font-black uppercase tracking-widest text-zinc-500'>Auto Cashout</Label>
+          <Switch
+            size='sm'
+            checked={autoCashoutEnabled}
+            onCheckedChange={onAutoCashoutEnabledChange}
+            disabled={!walletReady || !canBet}
+          />
+        </div>
+        <div
+          className={cn(
+            'group flex items-center bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden transition-all shadow-inner',
+            autoCashoutEnabled ? 'focus-within:border-cyan-500/50' : 'opacity-50'
+          )}
+        >
+          <Input
+            type='number'
+            step='0.01'
+            min='1.01'
+            placeholder='Ex: 2.00'
+            value={autoCashout}
+            onChange={e => onAutoCashoutChange(e.target.value)}
+            disabled={!walletReady || !canBet || !autoCashoutEnabled}
+            className='border-0 bg-transparent text-base font-black focus-visible:ring-0 focus-visible:ring-offset-0 h-11 p-0 pl-4 placeholder:text-zinc-600 placeholder:font-normal'
+          />
+          <div className='px-4 text-cyan-400 font-black text-xl'>×</div>
+        </div>
       </div>
 
       {canCashout ? (
