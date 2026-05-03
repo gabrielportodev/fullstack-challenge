@@ -137,11 +137,3 @@ cd frontend && bun test
 # Todos os testes
 bun test
 ```
-
----
-
-## Bônus implementados
-
-- **Efeitos sonoros** — Web Audio API com síntese de áudio para bet, cashout, crash e início de rodada
-- **Rate limiting** — 100 req/min por IP via Kong
-- **Fórmula da curva na UI** — `m(t) = e^(0.1·t)` exibida no gráfico para transparência
