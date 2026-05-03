@@ -27,7 +27,7 @@ export class CrashPoint {
     const value = parseInt(hmac.slice(0, 8), 16)
 
     // house edge de 4%: crash mínimo de 1.00x
-    const crashPoint = Math.max(1, (100 / (1 - (value % 100) / 100)) * 0.96) / 100
+    const crashPoint = Math.max(1.0, ((100 / (1 - (value % 100) / 100)) * 0.96) / 100)
     return Math.floor(crashPoint * 100) / 100
   }
 }
