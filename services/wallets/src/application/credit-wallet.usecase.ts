@@ -12,7 +12,6 @@ export class CreditWalletUseCase {
       throw new NotFoundException('Carteira não encontrada!')
     }
 
-    // Atomic increment — avoids lost-update race when concurrent credits arrive
     return this.prisma.wallet.update({
       where: { playerId },
       data: { balanceCents: { increment: amountCents } }

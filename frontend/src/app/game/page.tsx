@@ -124,12 +124,6 @@ export default function CrashGamePage() {
     setCashoutMarkers
   })
 
-  useEffect(() => {
-    onMultiplierTickRef.current = (_mult: number) => {
-      // Auto cashout removed as requested
-    }
-  }, [])
-
   const canBet = phase === 'BETTING' && !myBet
   const canCashout = phase === 'ACTIVE' && myBet?.status === 'PENDING'
   const potential = canCashout ? Math.round(myBet!.amountCents * multiplier) : null

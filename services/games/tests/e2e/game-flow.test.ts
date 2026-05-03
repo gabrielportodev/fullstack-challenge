@@ -149,7 +149,6 @@ describe('Crash Game End-to-End Suite', () => {
   test('Erro: Deve rejeitar aposta se o valor exceder o máximo', async () => {
     const token = await getToken('joao')
 
-    // Aguarda fase de apostas para garantir erro de valor e não de fase
     socket = io('http://localhost:4001', { transports: ['websocket'] })
     await new Promise<void>(r => socket.once('round:betting_start', () => r()))
 

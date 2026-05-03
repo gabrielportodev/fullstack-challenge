@@ -42,7 +42,6 @@ export class CashoutBetUseCase {
       }
     })
 
-    // Credita o prêmio na carteira do jogador
     this.publisher.creditWallet(bet.playerId, bet.cashoutPayoutCents!)
 
     this.gameLoop.emit(GAME_EVENTS.BET_CASHOUT, {

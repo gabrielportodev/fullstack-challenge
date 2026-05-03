@@ -81,8 +81,6 @@ describe('PlaceBetUseCase', () => {
   })
 })
 
-// ---
-
 describe('CashoutBetUseCase', () => {
   it('processa cashout com sucesso', async () => {
     const roundAtivo = { ...mockRoundRecord, status: 'ACTIVE', bets: [{ ...mockBetRecord }] }
@@ -115,8 +113,6 @@ describe('CashoutBetUseCase', () => {
   })
 })
 
-// ---
-
 describe('GetCurrentRoundUseCase', () => {
   it('retorna rodada em andamento', async () => {
     const prisma = makePrisma({ round: { findFirst: mock(() => mockRoundRecord) } })
@@ -131,8 +127,6 @@ describe('GetCurrentRoundUseCase', () => {
     expect(useCase.execute()).rejects.toThrow(NotFoundException)
   })
 })
-
-// ---
 
 describe('GetRoundHistoryUseCase', () => {
   it('retorna histórico paginado', async () => {
